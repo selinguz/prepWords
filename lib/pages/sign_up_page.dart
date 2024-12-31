@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:prep_words/components/custom_appbar.dart';
 import 'package:prep_words/components/custom_textField.dart';
 import 'package:prep_words/consts.dart';
-import 'package:prep_words/pages/sign_up_page.dart';
 import 'package:prep_words/pages/words_page.dart';
 
-class SignInPage extends StatefulWidget {
-  const SignInPage({super.key});
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
 
   @override
-  SignInPageState createState() => SignInPageState();
+  State<SignUpPage> createState() => _SignUpPageState();
 }
 
-class SignInPageState extends State<SignInPage> {
+class _SignUpPageState extends State<SignUpPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -65,19 +64,6 @@ class SignInPageState extends State<SignInPage> {
                     ),
                   ],
                 ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {},
-                    child: const Text(
-                      'Şifremi Unuttum',
-                      style: TextStyle(
-                        color: warnOrange,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
                 SizedBox(
                   width: MediaQuery.of(context).size.width *
                       0.7, // Make the button full-width
@@ -96,28 +82,13 @@ class SignInPageState extends State<SignInPage> {
                       elevation: 8,
                     ),
                     child: const Text(
-                      'Giriş Yap',
+                      'Kayıt Ol',
                       style: TextStyle(
                         fontSize: 20.0,
                         fontWeight: FontWeight.bold,
                         color: textWhiteColor,
                       ),
                     ),
-                  ),
-                ),
-                SizedBox(
-                  height: MediaQuery.sizeOf(context).height * 0.15,
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/signup');
-                  },
-                  child: const Text(
-                    'Hesabınız yok mu? Kaydolun',
-                    style: TextStyle(
-                        color: warnOrange,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20),
                   ),
                 ),
               ],

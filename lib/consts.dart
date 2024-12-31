@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'package:flutter/material.dart';
+
 const Color secondaryGreen = Color(0xFFA8D08D);
 const Color secondaryBlue = Color(0xFFDDECF9);
 const Color secondaryOrange = Color(0xFFFFE8CC);
@@ -33,3 +35,7 @@ Hafif göze çarpması gereken öğeler veya dolgu alanları için.
 Kırmızımsı Turuncu (#FF715B):
 Uyarı mesajları ya da hızlı aksiyon gerektiren durumlar için.
  */
+
+double screenWidth(BuildContext context) {
+  return MediaQuery.of(context).size.width;
+}
