@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prep_words/components/custom_appbar.dart';
 import 'package:prep_words/consts.dart';
 import 'package:prep_words/models/word.dart';
 import 'package:prep_words/services/firebase_service.dart';
@@ -27,10 +28,8 @@ class _WordsPageState extends State<WordsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Learn New Words'),
-      ),
-      backgroundColor: ivory,
+      appBar: CustomAppBar(title: 'Learn New Words'),
+      backgroundColor: backgrnd,
       body: FutureBuilder<List<WordModel>>(
         future: firebaseService.fetchWords(),
         builder: (context, snapshot) {
@@ -50,11 +49,11 @@ class _WordsPageState extends State<WordsPage> {
                 Container(
                   width: MediaQuery.of(context).size.width * 0.60,
                   height: MediaQuery.of(context).size.height * 0.10,
-                  color: Colors.grey,
+                  color: cardFrontColor,
                   child: Center(
                     child: Text(
                       words[0].englishWord,
-                      style: TextStyle(fontSize: 22.0),
+                      style: TextStyle(fontSize: 22.0, color: textWhiteColor),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -62,11 +61,11 @@ class _WordsPageState extends State<WordsPage> {
                 Container(
                   width: MediaQuery.of(context).size.width * 0.60,
                   height: MediaQuery.of(context).size.height * 0.10,
-                  color: Colors.blueAccent,
+                  color: secondaryOrange,
                   child: Center(
                     child: Text(
                       words[0].turkishMeaning,
-                      style: TextStyle(fontSize: 22.0),
+                      style: TextStyle(fontSize: 22.0, color: textGreyColor),
                       textAlign: TextAlign.center,
                     ),
                   ),

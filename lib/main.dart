@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:prep_words/pages/categories_page.dart';
+import 'package:prep_words/consts.dart';
+import 'package:prep_words/pages/sign_in_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,10 +33,10 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Timer(
-      Duration(seconds: 2),
+      Duration(seconds: 5),
       () => Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (BuildContext context) => CategoryPage(),
+          builder: (BuildContext context) => SignInPage(),
         ),
       ),
     );
@@ -44,20 +45,9 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.cyan[200], // Splash Screen background color
+      backgroundColor: primary, // Splash Screen background color
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'My Splash Screen App', // Title text
-              style: TextStyle(
-                fontSize: 24,
-                color: Colors.blueGrey[700],
-              ),
-            ),
-          ],
-        ),
+        child: Image.asset('assets/images/splash.gif'),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prep_words/components/custom_appbar.dart';
 import 'package:prep_words/pages/words_page.dart';
 
 class CategoryPage extends StatefulWidget {
@@ -12,9 +13,7 @@ class _CategoryPageState extends State<CategoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Choose WordType to Study'),
-      ),
+      appBar: CustomAppBar(title: 'Choose Word Type to Study'),
       body: Column(
         children: [
           Text('Verbs'),
