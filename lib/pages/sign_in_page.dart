@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:prep_words/components/custom_appbar.dart';
 import 'package:prep_words/components/custom_textField.dart';
 import 'package:prep_words/consts.dart';
-import 'package:prep_words/pages/sign_up_page.dart';
-import 'package:prep_words/pages/words_page.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -34,41 +32,85 @@ class SignInPageState extends State<SignInPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomTextField(
-                      controller: _emailController,
-                      hintText: 'Email Adresi',
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Lütfen email adresinizi girin';
-                        }
-                        // Basic email validation
-                        final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
-                        if (!emailRegex.hasMatch(value)) {
-                          return 'Lütfen geçerli bir email adresi girin';
-                        }
-                        return null;
-                      },
-                    ),
-                    CustomTextField(
-                      controller: _passwordController,
-                      hintText: 'Şifre',
-                      obscureText: true,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Lütfen şifrenizi girin';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
+                CustomTextField(
+                  controller: _emailController,
+                  hintText: 'Email Adresi',
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Lütfen email adresinizi girin';
+                    }
+                    // Basic email validation
+                    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+                    if (!emailRegex.hasMatch(value)) {
+                      return 'Lütfen geçerli bir email adresi girin';
+                    }
+                    return null;
+                  },
+                ),
+                CustomTextField(
+                  controller: _passwordController,
+                  hintText: 'Şifre',
+                  obscureText: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Lütfen şifrenizi girin';
+                    }
+                    return null;
+                  },
                 ),
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      showDialog(
+                          context: context,
+                          builder: (context) {
+                            return Dialog(
+                              elevation: 1,
+                              child: Container(
+                                height: MediaQuery.of(context).size.height / 4,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(15.0),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Text(
+                                        "Şifre sıfırlama linki için email adresinizi giriniz:"),
+                                    const SizedBox(
+                                      height: 3.5,
+                                    ),
+                                    CustomTextField(
+                                      controller: _emailController,
+                                      hintText: 'Email Adresi',
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Lütfen email adresinizi girin';
+                                        }
+                                        final emailRegex =
+                                            RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+                                        if (!emailRegex.hasMatch(value)) {
+                                          return 'Lütfen geçerli bir email adresi girin';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                    ElevatedButton(
+                                        child: Text('Gönder'),
+                                        onPressed: () {
+                                          Navigator.pushNamedAndRemoveUntil(
+                                            context,
+                                            '/signin',
+                                            ModalRoute.withName("/signin"),
+                                          );
+                                        })
+                                  ],
+                                ),
+                              ),
+                            );
+                          });
+                    },
                     child: const Text(
                       'Şifremi Unuttum',
                       style: TextStyle(

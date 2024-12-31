@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:prep_words/components/custom_appbar.dart';
 import 'package:prep_words/components/custom_textField.dart';
 import 'package:prep_words/consts.dart';
-import 'package:prep_words/pages/words_page.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
