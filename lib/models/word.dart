@@ -4,6 +4,7 @@ class WordModel {
   final String wordType;
   final String exampleSentence;
   final String exampleTranslation;
+  final int unit;
 
   WordModel({
     required this.englishWord,
@@ -11,6 +12,7 @@ class WordModel {
     required this.wordType,
     required this.exampleSentence,
     required this.exampleTranslation,
+    required this.unit,
   });
 
   factory WordModel.fromMap(Map<String, dynamic> map) {
@@ -20,6 +22,7 @@ class WordModel {
       wordType: map['wordType'] ?? '',
       exampleSentence: map['exampleSentence'] ?? '',
       exampleTranslation: map['exampleTranslation'] ?? '',
+      unit: map['unit'] ?? 0,
     );
   }
 }

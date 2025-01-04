@@ -69,7 +69,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   child: ElevatedButton(
                     onPressed: () {
                       //if (_formKey.currentState?.validate() ?? false) {
-                      Navigator.pushReplacementNamed(context, '/words');
+                      Navigator.pushReplacementNamed(context, '/home');
                       //}
                     },
                     style: ElevatedButton.styleFrom(

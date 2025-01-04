@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:prep_words/consts.dart';
 import 'package:prep_words/pages/categories_page.dart';
+import 'package:prep_words/pages/home_page.dart';
 import 'package:prep_words/pages/sign_in_page.dart';
 import 'package:prep_words/pages/sign_up_page.dart';
 import 'package:prep_words/pages/words_page.dart';
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
         '/signup': (context) => SignUpPage(),
         '/words': (context) => WordsPage(),
         '/categories': (context) => CategoryPage(),
+        '/home': (context) => HomePage(),
       },
     );
   }

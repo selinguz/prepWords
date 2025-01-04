@@ -102,7 +102,7 @@ class SignInPageState extends State<SignInPage> {
                                           Navigator.pushNamedAndRemoveUntil(
                                             context,
                                             '/signin',
-                                            ModalRoute.withName("/signin"),
+                                            ModalRoute.withName(" signin"),
                                           );
                                         })
                                   ],
@@ -126,7 +126,7 @@ class SignInPageState extends State<SignInPage> {
                   child: ElevatedButton(
                     onPressed: () {
                       //if (_formKey.currentState?.validate() ?? false) {
-                      Navigator.pushReplacementNamed(context, '/words');
+                      Navigator.pushReplacementNamed(context, '/home');
                       //}
                     },
                     style: ElevatedButton.styleFrom(
