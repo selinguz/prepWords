@@ -258,7 +258,15 @@ class levelRows extends StatelessWidget {
         Spacer(),
         IconButton(
           onPressed: () {
-            Navigator.pushReplacementNamed(context, '/levels');
+            Navigator.pushReplacementNamed(
+              context,
+              '/levels',
+              arguments: {
+                'level': levelNumber,
+                'levelName': levelName,
+                'unitCount': unitNumber,
+              },
+            );
           },
           icon: Icon(
             Icons.arrow_forward,

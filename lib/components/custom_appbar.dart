@@ -1,28 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:prep_words/consts.dart';
 
-class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
+class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  const CustomAppBar({super.key, required this.title});
+  final bool showBackButton;
 
-  @override
-  State<CustomAppBar> createState() => _CustomAppBarState();
+  const CustomAppBar({
+    super.key,
+    required this.title,
+    this.showBackButton = false,
+  });
 
-  @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight * 1.2);
-}
-
-class _CustomAppBarState extends State<CustomAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      leading: showBackButton
+          ? IconButton(
+              icon: Icon(Icons.arrow_back, color: textGreyColor),
+              onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
+            )
+          : null,
       title: Text(
-        widget.title,
-        style: TextStyle(
-            color: textWhiteColor, fontSize: 24, fontWeight: FontWeight.bold),
+        title,
+        style: TextStyle(color: textGreyColor),
       ),
       backgroundColor: primary,
-      iconTheme: IconThemeData(color: textWhiteColor, size: 30.0),
+      elevation: 0,
+      centerTitle: true,
+      iconTheme: IconThemeData(color: textGreyColor),
+      systemOverlayStyle: SystemUiOverlayStyle.dark,
     );
   }
+
+  @override
+  Size get preferredSize => Size.fromHeight(kToolbarHeight * 1.2);
 }

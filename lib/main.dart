@@ -22,16 +22,38 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       initialRoute: '/',
-      routes: {
-        '/': (context) => SplashScreen(),
-        '/signin': (context) => SignInPage(),
-        '/signup': (context) => SignUpPage(),
-        '/words': (context) => WordsPage(),
-        '/categories': (context) => CategoryPage(),
-        '/home': (context) => HomePage(),
-        '/levels': (context) => LevelsPage(
-              selectedLevel: "Başlangıç",
+      onGenerateRoute: (settings) {
+        if (settings.name == '/levels') {
+          final args = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (context) => LevelsPage(
+              level: args['level'],
+              levelName: args['levelName'],
+              unitCount: args['unitCount'],
             ),
+          );
+        }
+        // Diğer rotalar için normal routes map'ini kullan
+        return MaterialPageRoute(
+          builder: (context) {
+            switch (settings.name) {
+              case '/':
+                return SplashScreen();
+              case '/signin':
+                return SignInPage();
+              case '/signup':
+                return SignUpPage();
+              case '/words':
+                return WordsPage();
+              case '/categories':
+                return CategoryPage();
+              case '/home':
+                return HomePage();
+              default:
+                return SplashScreen();
+            }
+          },
+        );
       },
     );
   }

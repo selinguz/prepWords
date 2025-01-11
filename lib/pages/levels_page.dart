@@ -1,87 +1,60 @@
 import 'package:flutter/material.dart';
 import 'package:prep_words/components/custom_appbar.dart';
+import 'package:prep_words/consts.dart';
 
 class LevelsPage extends StatefulWidget {
-  final String selectedLevel;
+  final int level;
+  final String levelName;
+  final int unitCount;
 
-  const LevelsPage({super.key, required this.selectedLevel});
+  const LevelsPage({
+    super.key,
+    required this.level,
+    required this.levelName,
+    required this.unitCount,
+  });
 
   @override
   State<LevelsPage> createState() => _LevelsPageState();
 }
 
 class _LevelsPageState extends State<LevelsPage> {
-  List<String> unitNames = [
-    "Ünite 1",
-    "Ünite 2",
-    "Ünite 3",
-    "Ünite 4",
-    "Ünite 5",
-    "Ünite 6"
-  ]; 
-  
-  String selectedLevel = "Başlangıç";
+  late List<String> unitNames;
 
-  void updateLevel(String level) {
-    setState(() {
-      this.selectedLevel = level;
-      if (level == "Başlangıç") {
-        unitNames = [
-          "Ünite 1",
-          "Ünite 2",
-          "Ünite 3",
-          "Ünite 4",
-          "Ünite 5",
-          "Ünite 6"
-        ];
-      } else if (level == "Orta") {
-        unitNames = List.generate(22, (index) => "Ünite ${index + 1}");
-      } else if (level == "İleri") {
-        unitNames = List.generate(20, (index) => "Ünite ${index + 1}");
-      }
-    });
+  @override
+  void initState() {
+    super.initState();
+    unitNames =
+        List.generate(widget.unitCount, (index) => 'Ünite ${index + 1}');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: '$selectedLevel Seviyesi'),
-      body: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              IconButton(
-                icon: Icon(Icons.star),
-                onPressed: () => updateLevel("Başlangıç"),
+      appBar: CustomAppBar(
+        title: widget.levelName,
+        showBackButton: true,
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 18.0),
+        itemCount: unitNames.length,
+        itemBuilder: (context, index) {
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: primary,
+                child: Text(
+                  '${index + 1}',
+                  style: TextStyle(color: textWhiteColor),
+                ),
               ),
-              IconButton(
-                icon: Icon(Icons.adjust),
-                onPressed: () => updateLevel("Orta"),
-              ),
-              IconButton(
-                icon: Icon(Icons.arrow_upward),
-                onPressed: () => updateLevel("İleri"),
-              ),
-            ],
-          ),
-          Divider(),
-          // Ünitelere ait liste.
-          Expanded(
-            child: ListView.builder(
-              itemCount: unitNames.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(unitNames[index]),
-                  onTap: () {
-                    // Tıklanabilir ünite.
-                    print("${unitNames[index]} seçildi.");
-                  },
-                );
-              },
+              title: Text(unitNames[index]),
+              trailing: Icon(Icons.arrow_forward_ios, color: textGreyColor),
+              onTap: () {},
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
