@@ -16,16 +16,26 @@ class FirebaseService {
 
   Future<List<WordModel>> fetchWordsByUnit(int unitNumber) async {
     try {
+      print('Aranan ünite numarası: $unitNumber'); // Debug için
+
       final QuerySnapshot querySnapshot = await _firestore
-          .collection('words')
+          .collection('word_list')
           .where('unit', isEqualTo: unitNumber)
           .get();
+
+      print(
+          'Bulunan döküman sayısı: ${querySnapshot.docs.length}'); // Debug için
+
+      // Her bir dökümanın içeriğini kontrol edelim
+      for (var doc in querySnapshot.docs) {
+        print('Döküman verisi: ${doc.data()}'); // Debug için
+      }
 
       return querySnapshot.docs
           .map((doc) => WordModel.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Hata: $e');
+      print('Hata detayı: $e'); // Detaylı hata mesajı
       rethrow;
     }
   }
