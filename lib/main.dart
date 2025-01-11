@@ -29,7 +29,9 @@ class MyApp extends StatelessWidget {
         '/words': (context) => WordsPage(),
         '/categories': (context) => CategoryPage(),
         '/home': (context) => HomePage(),
-        '/levels': (context) => LevelsPage(),
+        '/levels': (context) => LevelsPage(
+              selectedLevel: "Başlangıç",
+            ),
       },
     );
   }

@@ -18,12 +18,13 @@ class _LevelsPageState extends State<LevelsPage> {
     "Ünite 4",
     "Ünite 5",
     "Ünite 6"
-  ]; // Başlangıç için varsayılan üniteler.
+  ]; 
+  
+  String selectedLevel = "Başlangıç";
 
-  // Seviye değiştirme fonksiyonu.
   void updateLevel(String level) {
     setState(() {
-      selectedLevel = level;
+      this.selectedLevel = level;
       if (level == "Başlangıç") {
         unitNames = [
           "Ünite 1",

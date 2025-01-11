@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:prep_words/components/custom_appbar.dart';
 import 'package:prep_words/consts.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:simple_circular_progress_bar/simple_circular_progress_bar.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
