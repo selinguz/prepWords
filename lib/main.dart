@@ -32,8 +32,12 @@ class MyApp extends StatelessWidget {
               unitCount: args['unitCount'],
             ),
           );
+        } else if (settings.name == '/words') {
+          final args = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (context) => WordsPage(unit: args['unit']),
+          );
         }
-        // Diğer rotalar için normal routes map'ini kullan
         return MaterialPageRoute(
           builder: (context) {
             switch (settings.name) {
@@ -43,8 +47,6 @@ class MyApp extends StatelessWidget {
                 return SignInPage();
               case '/signup':
                 return SignUpPage();
-              case '/words':
-                return WordsPage();
               case '/categories':
                 return CategoryPage();
               case '/home':

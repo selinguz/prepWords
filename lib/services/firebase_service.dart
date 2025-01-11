@@ -13,4 +13,20 @@ class FirebaseService {
       throw Exception('Kelime listesi alınırken hata oluştu: $e');
     }
   }
+
+  Future<List<WordModel>> fetchWordsByUnit(int unitNumber) async {
+    try {
+      final QuerySnapshot querySnapshot = await _firestore
+          .collection('words')
+          .where('unit', isEqualTo: unitNumber)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => WordModel.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print('Hata: $e');
+      rethrow;
+    }
+  }
 }

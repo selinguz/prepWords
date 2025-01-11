@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:prep_words/components/custom_appbar.dart';
 import 'package:prep_words/consts.dart';
+import 'package:prep_words/pages/words_page.dart';
 
 class LevelsPage extends StatefulWidget {
   final int level;
@@ -51,7 +52,16 @@ class _LevelsPageState extends State<LevelsPage> {
               ),
               title: Text(unitNames[index]),
               trailing: Icon(Icons.arrow_forward_ios, color: textGreyColor),
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => WordsPage(
+                      unit: index + 1,
+                    ),
+                  ),
+                );
+              },
             ),
           );
         },

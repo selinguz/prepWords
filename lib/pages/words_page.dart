@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:prep_words/components/custom_appbar.dart';
+import 'package:prep_words/components/custom_card.dart';
 import 'package:prep_words/consts.dart';
 import 'package:prep_words/models/word.dart';
 import 'package:prep_words/services/firebase_service.dart';
 
 class WordsPage extends StatefulWidget {
-  const WordsPage({super.key});
+  final int unit;
+  const WordsPage({super.key, required this.unit});
 
   @override
   State<WordsPage> createState() => _WordsPageState();
@@ -13,65 +15,72 @@ class WordsPage extends StatefulWidget {
 
 class _WordsPageState extends State<WordsPage> {
   final firebaseService = FirebaseService();
+  late PageController _pageController;
+  int currentPage = 0;
 
-  Future<void> getWords() async {
-    try {
-      List<WordModel> words = await firebaseService.fetchWords();
-      for (var word in words) {
-        print('${word.englishWord} - ${word.turkishMeaning}');
-      }
-    } catch (e) {
-      print('Hata: $e');
-    }
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: 'Learn New Words'),
+      appBar: CustomAppBar(
+        title: 'Ünite ${widget.unit}',
+        showBackButton: true,
+      ),
       backgroundColor: backgrnd,
       body: FutureBuilder<List<WordModel>>(
-        future: firebaseService.fetchWords(),
+        future: firebaseService.fetchWordsByUnit(widget.unit),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Hata: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('Hiç kelime bulunamadı.'));
+            return Center(child: Text('Bu ünitede kelime bulunamadı.'));
           }
 
           final words = snapshot.data!;
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.60,
-                  height: MediaQuery.of(context).size.height * 0.10,
-                  color: cardFrontColor,
-                  child: Center(
-                    child: Text(
-                      words[0].englishWord,
-                      style: TextStyle(fontSize: 22.0, color: textWhiteColor),
-                      textAlign: TextAlign.center,
-                    ),
+          return Column(
+            children: [
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: words.length,
+                  onPageChanged: (index) {
+                    setState(() {
+                      currentPage = index;
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: CustomFlipCard(word: words[index]),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  '${currentPage + 1} / ${words.length}',
+                  style: TextStyle(
+                    color: textGreyColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.60,
-                  height: MediaQuery.of(context).size.height * 0.10,
-                  color: secondaryOrange,
-                  child: Center(
-                    child: Text(
-                      words[0].turkishMeaning,
-                      style: TextStyle(fontSize: 22.0, color: textGreyColor),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),
