@@ -53,9 +53,11 @@ class _WordsPageState extends State<WordsPage> {
           return Column(
             children: [
               Expanded(
+                flex: 80,
                 child: PageView.builder(
                   controller: _pageController,
                   itemCount: words.length,
+                  physics: NeverScrollableScrollPhysics(),
                   onPageChanged: (index) {
                     setState(() {
                       currentPage = index;
@@ -69,14 +71,103 @@ class _WordsPageState extends State<WordsPage> {
                   },
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: Text(
                   '${currentPage + 1} / ${words.length}',
                   style: TextStyle(
                     color: textGreyColor,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 20,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () {
+                          if (currentPage < words.length - 1) {
+                            _pageController.nextPage(
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content:
+                                      Text('Tüm kelimeleri tamamladınız!')),
+                            );
+                          }
+                        },
+                        child: Text('Biliyorum',
+                            style: TextStyle(color: textWhiteColor)),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () {
+                          if (currentPage < words.length - 1) {
+                            _pageController.nextPage(
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content:
+                                      Text('Tüm kelimeleri tamamladınız!')),
+                            );
+                          }
+                        },
+                        child: Text('Emin Değilim',
+                            style: TextStyle(color: textWhiteColor)),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () {
+                          if (currentPage < words.length - 1) {
+                            _pageController.nextPage(
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content:
+                                      Text('Tüm kelimeleri tamamladınız!')),
+                            );
+                          }
+                        },
+                        child: Text('Bilmiyorum',
+                            style: TextStyle(color: textWhiteColor)),
+                      ),
+                    ],
                   ),
                 ),
               ),

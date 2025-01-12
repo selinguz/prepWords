@@ -25,8 +25,17 @@ class _LevelsPageState extends State<LevelsPage> {
   @override
   void initState() {
     super.initState();
-    unitNames =
-        List.generate(widget.unitCount, (index) => 'Ünite ${index + 1}');
+    unitNames = List.generate(widget.unitCount, (index) {
+      if (widget.levelName == 'Başlangıç Seviyesi') {
+        return 'Ünite ${index + 1}';
+      } else if (widget.levelName == 'Orta Seviye') {
+        return 'Ünite ${index + 7}';
+      } else if (widget.levelName == 'İleri Seviye') {
+        return 'Ünite ${index + 29}';
+      } else {
+        return 'Üniteler listelenemiyor';
+      }
+    });
   }
 
   @override
@@ -46,7 +55,7 @@ class _LevelsPageState extends State<LevelsPage> {
               leading: CircleAvatar(
                 backgroundColor: primary,
                 child: Text(
-                  '${index + 1}',
+                  '',
                   style: TextStyle(color: textWhiteColor),
                 ),
               ),

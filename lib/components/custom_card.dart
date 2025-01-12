@@ -17,7 +17,7 @@ class CustomFlipCard extends StatelessWidget {
     return FlipCard(
       rotateSide: RotateSide.right,
       onTapFlipping: true, // true = tıklama ile döndürme aktif
-      axis: FlipAxis.horizontal,
+      axis: FlipAxis.vertical,
       controller: flipCardController,
       frontWidget: _buildFrontCard(),
       backWidget: _buildBackCard(),
@@ -39,13 +39,27 @@ class CustomFlipCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              word.englishWord,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: textWhiteColor,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  word.englishWord,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: textWhiteColor,
+                  ),
+                ),
+                SizedBox(width: 5),
+                Text(
+                  '(${word.wordType})',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: textWhiteColor,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: 10),
             Text(
@@ -56,20 +70,6 @@ class CustomFlipCard extends StatelessWidget {
               ),
             ),
             SizedBox(height: 10),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: secondaryOrange,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                word.wordType,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: textWhiteColor,
-                ),
-              ),
-            ),
             SizedBox(height: 20),
             Icon(
               Icons.touch_app,
@@ -109,7 +109,7 @@ class CustomFlipCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: textWhiteColor,
+                color: textGreyColor,
               ),
             ),
             SizedBox(height: 10),
@@ -118,8 +118,7 @@ class CustomFlipCard extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 18,
-                color: textWhiteColor,
-                fontStyle: FontStyle.italic,
+                color: textGreyColor,
               ),
             ),
             SizedBox(height: 20),
@@ -128,28 +127,29 @@ class CustomFlipCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: textWhiteColor,
+                color: textGreyColor,
               ),
             ),
             SizedBox(height: 10),
             Text(
-              word.turkishMeaning,
+              word.exampleTranslation,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 18,
-                color: textWhiteColor,
+                color: textGreyColor,
+                fontStyle: FontStyle.italic,
               ),
             ),
             SizedBox(height: 20),
             Icon(
               Icons.touch_app,
-              color: textWhiteColor,
+              color: textGreyColor,
               size: 30,
             ),
             Text(
               'Kartı çevirmek için dokun',
               style: TextStyle(
-                color: textWhiteColor,
+                color: textGreyColor,
                 fontSize: 12,
               ),
             ),
