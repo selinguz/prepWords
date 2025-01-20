@@ -35,7 +35,6 @@ class _WordsPageState extends State<WordsPage> {
     return Scaffold(
       appBar: CustomAppBar(
         title: 'Ünite ${widget.unit}',
-        showBackButton: true,
       ),
       backgroundColor: backgrnd,
       body: FutureBuilder<List<WordModel>>(

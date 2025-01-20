@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:prep_words/consts.dart';
-import 'package:prep_words/pages/categories_page.dart';
+import 'package:prep_words/pages/categories_content.dart';
 import 'package:prep_words/pages/home_page.dart';
 import 'package:prep_words/pages/levels_page.dart';
 import 'package:prep_words/pages/sign_in_page.dart';
@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
               case '/signup':
                 return SignUpPage();
               case '/categories':
-                return CategoryPage();
+                return CategoriesContent();
               case '/home':
                 return HomePage();
               default:

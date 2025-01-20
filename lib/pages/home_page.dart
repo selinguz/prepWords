@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:prep_words/components/custom_appbar.dart';
 import 'package:prep_words/consts.dart';
+import 'package:prep_words/pages/categories_content.dart';
+import 'package:prep_words/pages/profile_content.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -10,91 +12,137 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      appBar: CustomAppBar(title: 'exaMate'),
+      appBar: _selectedIndex == 0 ? CustomAppBar(title: 'exaMate') : null,
       backgroundColor: backgrnd,
-      body: Padding(
-        padding: const EdgeInsets.all(18.0),
-        child: Column(
-          children: [
-            // Profil Bölümü
-            Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: primary,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: textWhiteColor,
-                    child: Text(
-                      'SG',
-                      style: headingLarge.copyWith(color: primary),
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Text(
-                    'Hoş Geldin Selin',
-                    style: headingLarge.copyWith(color: textWhiteColor),
-                  ),
-                ],
-              ),
-            ),
-
-            SizedBox(height: 24),
-
-            // Başlık
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: secondaryOrange,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Text(
-                'Bir Yerden Başla!',
-                style: headingMedium,
-                textAlign: TextAlign.center,
-              ),
-            ),
-
-            SizedBox(height: 24),
-
-            // Seviye Kartları
-            Expanded(
-              child: ListView(
-                children: [
-                  _buildLevelCard(
-                    levelNumber: 1,
-                    levelName: 'Başlangıç Seviyesi',
-                    unitNumber: 6,
-                    context: context,
-                  ),
-                  SizedBox(height: 16),
-                  _buildLevelCard(
-                    levelNumber: 2,
-                    levelName: 'Orta Seviye',
-                    unitNumber: 22,
-                    context: context,
-                  ),
-                  SizedBox(height: 16),
-                  _buildLevelCard(
-                    levelNumber: 3,
-                    levelName: 'İleri Seviye',
-                    unitNumber: 20,
-                    context: context,
-                  ),
-                ],
-              ),
+      body: _selectedIndex == 0
+          ? _buildHomePage()
+          : _selectedIndex == 1
+              ? const CategoriesContent()
+              : const ProfileContent(),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.deepOrange.withAlpha(120),
+              spreadRadius: 1,
+              blurRadius: 10,
             ),
           ],
         ),
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          backgroundColor: textWhiteColor,
+          selectedItemColor: primary,
+          unselectedItemColor: textGreyColor,
+          selectedLabelStyle: bodySmall.copyWith(fontWeight: FontWeight.w600),
+          unselectedLabelStyle: bodySmall,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_rounded),
+              label: 'Ana Sayfa',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.category_rounded),
+              label: 'Kategoriler',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_rounded),
+              label: 'Profil',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHomePage() {
+    return Padding(
+      padding: const EdgeInsets.all(18.0),
+      child: Column(
+        children: [
+          // Profil Bölümü
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: primary,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 30,
+                  backgroundColor: textWhiteColor,
+                  child: Text(
+                    'SG',
+                    style: headingMedium.copyWith(color: primary),
+                  ),
+                ),
+                SizedBox(width: 16),
+                Text(
+                  'Hoş Geldin Selin',
+                  style: headingMedium.copyWith(color: textWhiteColor),
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(height: 24),
+
+          // Başlık
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: secondaryOrange,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Text(
+              'Bir Yerden Başla!',
+              style: headingMedium,
+              textAlign: TextAlign.center,
+            ),
+          ),
+
+          SizedBox(height: 24),
+
+          // Seviye Kartları
+          Expanded(
+            child: ListView(
+              children: [
+                _buildLevelCard(
+                  levelNumber: 1,
+                  levelName: 'Başlangıç Seviyesi',
+                  unitNumber: 6,
+                  context: context,
+                ),
+                SizedBox(height: 16),
+                _buildLevelCard(
+                  levelNumber: 2,
+                  levelName: 'Orta Seviye',
+                  unitNumber: 22,
+                  context: context,
+                ),
+                SizedBox(height: 16),
+                _buildLevelCard(
+                  levelNumber: 3,
+                  levelName: 'İleri Seviye',
+                  unitNumber: 20,
+                  context: context,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

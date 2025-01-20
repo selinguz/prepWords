@@ -3,7 +3,7 @@ import 'package:prep_words/components/custom_appbar.dart';
 import 'package:prep_words/consts.dart';
 import 'package:prep_words/pages/words_page.dart';
 
-class LevelsPage extends StatefulWidget {
+class LevelsPage extends StatelessWidget {
   final int level;
   final String levelName;
   final int unitCount;
@@ -14,49 +14,24 @@ class LevelsPage extends StatefulWidget {
     required this.levelName,
     required this.unitCount,
   });
-  
-  @override
-  State<LevelsPage> createState() => _LevelsPageState();
-}
-
-class _LevelsPageState extends State<LevelsPage> {
-  late List<String> unitNames;
-
-  @override
-  void initState() {
-    super.initState();
-    unitNames = List.generate(widget.unitCount, (index) {
-      if (widget.levelName == 'Başlangıç Seviyesi') {
-        return 'Ünite ${index + 1}';
-      } else if (widget.levelName == 'Orta Seviye') {
-        return 'Ünite ${index + 7}';
-      } else if (widget.levelName == 'İleri Seviye') {
-        return 'Ünite ${index + 29}';
-      } else {
-        return 'Üniteler listelenemiyor';
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: widget.levelName,
-        showBackButton: true,
+        title: levelName,
       ),
+      backgroundColor: backgrnd,
       body: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 18.0),
-        itemCount: unitNames.length,
+        itemCount: unitCount,
         itemBuilder: (context, index) {
           return InkWell(
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => WordsPage(
-                    unit: index + 1,
-                  ),
+                  builder: (context) => WordsPage(unit: index + 1),
                 ),
               );
             },
@@ -90,7 +65,7 @@ class _LevelsPageState extends State<LevelsPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              unitNames[index],
+                              'Ünite ${index + 1}',
                               style: headingMedium.copyWith(
                                 color: textGreyColor.withAlpha(179),
                                 fontWeight: FontWeight.w600,

@@ -39,7 +39,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   children: [
                     CustomTextField(
                       controller: _nameController,
-                      hintText: 'İsminiz',
+                      hintText: 'İsim',
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Lütfen isminizi girin';

@@ -132,6 +132,32 @@ class _SignInPageState extends State<SignInPage> {
                   ),
                 ),
                 SizedBox(
+                  height: MediaQuery.sizeOf(context).height * 0.05,
+                ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width *
+                      0.7, // Make the button full-width
+                  child: ElevatedButton(
+                    onPressed: () {
+                      //if (_formKey.currentState?.validate() ?? false) {
+                      Navigator.pushReplacementNamed(context, '/home');
+                      //}
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primary, // Button color
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14.0),
+                      elevation: 8,
+                    ),
+                    child: Text(
+                      'Giriş Yap',
+                      style: whiteButtonText,
+                    ),
+                  ),
+                ),
+                SizedBox(
                   height: MediaQuery.sizeOf(context).height * 0.15,
                 ),
                 TextButton(

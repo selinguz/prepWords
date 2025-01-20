@@ -4,23 +4,15 @@ import 'package:prep_words/consts.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  final bool showBackButton;
 
   const CustomAppBar({
     super.key,
     required this.title,
-    this.showBackButton = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      leading: showBackButton
-          ? IconButton(
-              icon: Icon(Icons.arrow_back, color: textGreyColor),
-              onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
-            )
-          : null,
       title: Text(
         title,
         style: headingLarge.copyWith(fontSize: 30),
