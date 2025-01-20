@@ -13,6 +13,7 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _nameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -24,6 +25,7 @@ class _SignUpPageState extends State<SignUpPage> {
           Positioned.fill(
             child: Image.asset(
               'assets/images/background.png',
+              opacity: const AlwaysStoppedAnimation<double>(0.7),
               fit: BoxFit.cover,
             ),
           ),
@@ -35,6 +37,16 @@ class _SignUpPageState extends State<SignUpPage> {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    CustomTextField(
+                      controller: _nameController,
+                      hintText: 'İsminiz',
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Lütfen isminizi girin';
+                        }
+                        return null;
+                      },
+                    ),
                     CustomTextField(
                       controller: _emailController,
                       hintText: 'Email Adresi',
@@ -80,13 +92,9 @@ class _SignUpPageState extends State<SignUpPage> {
                       padding: const EdgeInsets.symmetric(vertical: 14.0),
                       elevation: 8,
                     ),
-                    child: const Text(
+                    child: Text(
                       'Kayıt Ol',
-                      style: TextStyle(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold,
-                        color: textWhiteColor,
-                      ),
+                      style: whiteButtonText,
                     ),
                   ),
                 ),

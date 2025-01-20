@@ -21,7 +21,7 @@ class _WordsPageState extends State<WordsPage> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
+    _pageController = PageController(initialPage: 0);
   }
 
   @override
@@ -50,6 +50,8 @@ class _WordsPageState extends State<WordsPage> {
           }
 
           final words = snapshot.data!;
+          print('Mevcut kelime: ${words[currentPage].englishWord}');
+
           return Column(
             children: [
               Expanded(
@@ -57,16 +59,21 @@ class _WordsPageState extends State<WordsPage> {
                 child: PageView.builder(
                   controller: _pageController,
                   itemCount: words.length,
-                  physics: NeverScrollableScrollPhysics(),
+                  physics: ClampingScrollPhysics(),
                   onPageChanged: (index) {
                     setState(() {
                       currentPage = index;
+                      print('Sayfa değişti. Yeni index: $index');
                     });
                   },
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: CustomFlipCard(word: words[index]),
+                      child: CustomFlipCard(
+                        key:
+                            ValueKey(words[index].englishWord), // Benzersiz key
+                        word: words[currentPage],
+                      ),
                     );
                   },
                 ),
@@ -100,7 +107,11 @@ class _WordsPageState extends State<WordsPage> {
                         ),
                         onPressed: () {
                           if (currentPage < words.length - 1) {
-                            _pageController.nextPage(
+                            setState(() {
+                              currentPage++;
+                            });
+                            _pageController.animateToPage(
+                              currentPage,
                               duration: Duration(milliseconds: 300),
                               curve: Curves.easeInOut,
                             );
@@ -126,7 +137,11 @@ class _WordsPageState extends State<WordsPage> {
                         ),
                         onPressed: () {
                           if (currentPage < words.length - 1) {
-                            _pageController.nextPage(
+                            setState(() {
+                              currentPage++;
+                            });
+                            _pageController.animateToPage(
+                              currentPage,
                               duration: Duration(milliseconds: 300),
                               curve: Curves.easeInOut,
                             );
@@ -152,7 +167,11 @@ class _WordsPageState extends State<WordsPage> {
                         ),
                         onPressed: () {
                           if (currentPage < words.length - 1) {
-                            _pageController.nextPage(
+                            setState(() {
+                              currentPage++;
+                            });
+                            _pageController.animateToPage(
+                              currentPage,
                               duration: Duration(milliseconds: 300),
                               curve: Curves.easeInOut,
                             );

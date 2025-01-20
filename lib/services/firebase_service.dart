@@ -3,7 +3,7 @@ import 'package:prep_words/models/word.dart';
 
 class FirebaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final String collectionName = 'word_list'; // Firebase'deki koleksiyon adı
+  final String collectionName = 'word_list'; 
 
   Future<List<WordModel>> fetchWords() async {
     try {
@@ -35,7 +35,7 @@ class FirebaseService {
           .map((doc) => WordModel.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Hata detayı: $e'); // Detaylı hata mesajı
+      print('Hata detayı: $e'); 
       rethrow;
     }
   }

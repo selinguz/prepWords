@@ -14,7 +14,7 @@ class LevelsPage extends StatefulWidget {
     required this.levelName,
     required this.unitCount,
   });
-
+  
   @override
   State<LevelsPage> createState() => _LevelsPageState();
 }
@@ -49,28 +49,81 @@ class _LevelsPageState extends State<LevelsPage> {
         padding: const EdgeInsets.symmetric(vertical: 18.0),
         itemCount: unitNames.length,
         itemBuilder: (context, index) {
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: primary,
-                child: Text(
-                  '',
-                  style: TextStyle(color: textWhiteColor),
+          return InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WordsPage(
+                    unit: index + 1,
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: Card(
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Container(
+                  padding: EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      // Sol taraftaki daire
+                      Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: primary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(''),
+                        ),
+                      ),
+                      SizedBox(width: 16),
+                      // Orta kısım
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              unitNames[index],
+                              style: headingMedium.copyWith(
+                                color: textGreyColor.withAlpha(179),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              '20 Kelime',
+                              style: bodySmall.copyWith(
+                                color: textGreyColor.withAlpha(135),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Sağ taraftaki ok ikonu
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: primary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.arrow_forward_ios,
+                          color: textWhiteColor,
+                          size: 18,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              title: Text(unitNames[index]),
-              trailing: Icon(Icons.arrow_forward_ios, color: textGreyColor),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => WordsPage(
-                      unit: index + 1,
-                    ),
-                  ),
-                );
-              },
             ),
           );
         },

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prep_words/consts.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -20,7 +21,7 @@ class CustomTextField extends StatelessWidget {
       padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.05),
       child: TextFormField(
         cursorColor: Colors.black,
-        style: const TextStyle(color: Colors.black),
+        style: headingSmall.copyWith(fontWeight: FontWeight.bold),
         controller: controller,
         obscureText: obscureText,
         validator: validator,
@@ -28,7 +29,7 @@ class CustomTextField extends StatelessWidget {
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
           hintText: hintText,
-          hintStyle: TextStyle(color: Colors.black),
+          hintStyle: bodyMedium,
           focusedBorder: OutlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
             borderRadius: BorderRadius.circular(8.0),

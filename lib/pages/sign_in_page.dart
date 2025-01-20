@@ -7,13 +7,13 @@ class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
 
   @override
-  SignInPageState createState() => SignInPageState();
+  _SignInPageState createState() => _SignInPageState();
 }
 
-class SignInPageState extends State<SignInPage> {
+class _SignInPageState extends State<SignInPage> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +24,7 @@ class SignInPageState extends State<SignInPage> {
           Positioned.fill(
             child: Image.asset(
               'assets/images/background.png',
+              opacity: const AlwaysStoppedAnimation<double>(0.7),
               fit: BoxFit.cover,
             ),
           ),
@@ -34,15 +35,10 @@ class SignInPageState extends State<SignInPage> {
               children: [
                 CustomTextField(
                   controller: _emailController,
-                  hintText: 'Email Adresi',
+                  hintText: 'Email',
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Lütfen email adresinizi girin';
-                    }
-                    // Basic email validation
-                    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
-                    if (!emailRegex.hasMatch(value)) {
-                      return 'Lütfen geçerli bir email adresi girin';
+                    if (value?.isEmpty ?? true) {
+                      return 'Email gerekli';
                     }
                     return null;
                   },
@@ -52,8 +48,11 @@ class SignInPageState extends State<SignInPage> {
                   hintText: 'Şifre',
                   obscureText: true,
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Lütfen şifrenizi girin';
+                    if (value?.isEmpty ?? true) {
+                      return 'Şifre gerekli';
+                    }
+                    if (value!.length < 6) {
+                      return 'Şifre en az 6 karakter olmalı';
                     }
                     return null;
                   },
@@ -76,8 +75,11 @@ class SignInPageState extends State<SignInPage> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Text(
-                                        "Şifre sıfırlama linki için email adresinizi giriniz:"),
+                                    Text(
+                                      "Şifre sıfırlama linki için email adresinizi giriniz:",
+                                      style: bodyLarge,
+                                      textAlign: TextAlign.center,
+                                    ),
                                     const SizedBox(
                                       height: 3.5,
                                     ),
@@ -97,7 +99,17 @@ class SignInPageState extends State<SignInPage> {
                                       },
                                     ),
                                     ElevatedButton(
-                                        child: Text('Gönder'),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: secondaryOrange,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          'Gönder',
+                                          style: greyButtonText,
+                                        ),
                                         onPressed: () {
                                           Navigator.pushNamedAndRemoveUntil(
                                             context,
@@ -111,38 +123,10 @@ class SignInPageState extends State<SignInPage> {
                             );
                           });
                     },
-                    child: const Text(
+                    child: Text(
                       'Şifremi Unuttum',
-                      style: TextStyle(
+                      style: greyButtonText.copyWith(
                         color: warnOrange,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width *
-                      0.7, // Make the button full-width
-                  child: ElevatedButton(
-                    onPressed: () {
-                      //if (_formKey.currentState?.validate() ?? false) {
-                      Navigator.pushReplacementNamed(context, '/home');
-                      //}
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primary, // Button color
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 14.0),
-                      elevation: 8,
-                    ),
-                    child: const Text(
-                      'Giriş Yap',
-                      style: TextStyle(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold,
-                        color: textWhiteColor,
                       ),
                     ),
                   ),
@@ -154,12 +138,14 @@ class SignInPageState extends State<SignInPage> {
                   onPressed: () {
                     Navigator.pushReplacementNamed(context, '/signup');
                   },
-                  child: const Text(
+                  child: Text(
                     'Hesabınız yok mu? Kaydolun',
-                    style: TextStyle(
-                        color: warnOrange,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20),
+                    style: headingMedium.copyWith(
+                      color: warnOrange,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                      decorationColor: warnOrange,
+                    ),
                   ),
                 ),
               ],
