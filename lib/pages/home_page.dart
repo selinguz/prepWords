@@ -17,7 +17,12 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _selectedIndex == 0 ? CustomAppBar(title: 'exaMate') : null,
+      appBar: _selectedIndex == 0
+          ? CustomAppBar(
+              title: 'exaMate',
+              onBackPressed: null,
+            )
+          : null,
       backgroundColor: backgrnd,
       body: _selectedIndex == 0
           ? _buildHomePage()
@@ -41,8 +46,8 @@ class _HomePageState extends State<HomePage> {
               _selectedIndex = index;
             });
           },
-          backgroundColor: textWhiteColor,
-          selectedItemColor: primary,
+          backgroundColor: primary,
+          selectedItemColor: textWhiteColor,
           unselectedItemColor: textGreyColor,
           selectedLabelStyle: bodySmall.copyWith(fontWeight: FontWeight.w600),
           unselectedLabelStyle: bodySmall,

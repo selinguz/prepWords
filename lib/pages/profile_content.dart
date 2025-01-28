@@ -1,14 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:prep_words/components/custom_appbar.dart';
+import 'package:flutter/services.dart';
 import 'package:prep_words/consts.dart';
 
-class ProfileContent extends StatelessWidget {
+class ProfileContent extends StatefulWidget {
   const ProfileContent({super.key});
+
+  @override
+  State<ProfileContent> createState() => _ProfileContentState();
+}
+
+class _ProfileContentState extends State<ProfileContent> {
+  final TextEditingController _nameController =
+      TextEditingController(text: 'Selin Güzel');
+  final TextEditingController _emailController =
+      TextEditingController(text: 'selin@example.com');
+  bool _isEditing = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: 'Profil'),
+      appBar: AppBar(
+        toolbarHeight: kToolbarHeight * 1.2,
+        backgroundColor: primary,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: IconThemeData(color: textGreyColor),
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        title: Text('Profil'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.edit, color: textGreyColor),
+            onPressed: () {
+              setState(() {
+                _isEditing = !_isEditing;
+              });
+            },
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -25,26 +54,35 @@ class ProfileContent extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Text(
-              'Selin Güzel',
-              style: headingLarge,
+            _buildProfileItem(
+              icon: Icons.person,
+              title: 'İsim Soyisim',
+              subtitle: _isEditing
+                  ? _buildEditableField(_nameController)
+                  : Text(_nameController.text), // Wrap text in a Text widget
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
             _buildProfileItem(
               icon: Icons.email,
               title: 'E-posta',
-              subtitle: 'selin@example.com',
+              subtitle: _isEditing
+                  ? _buildEditableField(_emailController)
+                  : Text(_emailController.text),
             ),
+            const SizedBox(height: 16),
             _buildProfileItem(
               icon: Icons.bar_chart,
               title: 'Toplam İlerleme',
-              subtitle: '%45',
+              subtitle: Text('%45'),
             ),
+            const SizedBox(height: 16),
             _buildProfileItem(
               icon: Icons.calendar_today,
               title: 'Katılım Tarihi',
-              subtitle: '01.01.2024',
+              subtitle: Text('01.01.2024'),
             ),
+            const SizedBox(height: 32),
+            if (_isEditing) _buildSaveButton(),
           ],
         ),
       ),
@@ -54,12 +92,49 @@ class ProfileContent extends StatelessWidget {
   Widget _buildProfileItem({
     required IconData icon,
     required String title,
-    required String subtitle,
+    required Widget subtitle,
   }) {
     return ListTile(
       leading: Icon(icon, color: primary),
       title: Text(title, style: bodyLarge),
-      subtitle: Text(subtitle, style: bodyMedium),
+      subtitle: subtitle,
+    );
+  }
+
+  Widget _buildEditableField(TextEditingController controller) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        border: OutlineInputBorder(),
+        hintText: 'Düzenle',
+      ),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return ElevatedButton(
+      onPressed: () {
+        // Save the updated information
+        String updatedName = _nameController.text;
+        String updatedEmail = _emailController.text;
+
+        // Example: Print the updated information
+        print('Yeni İsim: $updatedName');
+        print('Yeni E-posta: $updatedEmail');
+
+        // Close editing mode
+        setState(() {
+          _isEditing = false;
+        });
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primary,
+        padding: const EdgeInsets.symmetric(vertical: 14.0),
+      ),
+      child: const Text(
+        'Kaydet',
+        style: TextStyle(color: textWhiteColor),
+      ),
     );
   }
 }

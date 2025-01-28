@@ -20,6 +20,9 @@ class LevelsPage extends StatelessWidget {
     return Scaffold(
       appBar: CustomAppBar(
         title: levelName,
+        onBackPressed: (){
+          Navigator.pushReplacementNamed(context, '/home');
+        },
       ),
       backgroundColor: backgrnd,
       body: ListView.builder(
