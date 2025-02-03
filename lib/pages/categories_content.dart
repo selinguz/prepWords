@@ -93,7 +93,7 @@ class _CategoriesContentState extends State<CategoriesContent> {
               borderRadius: BorderRadius.circular(15),
               boxShadow: [
                 BoxShadow(
-                  color: primary.withOpacity(0.2),
+                  color: primary.withAlpha(2),
                   blurRadius: 8,
                   offset: Offset(0, 4),
                 ),

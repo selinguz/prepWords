@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:prep_words/components/custom_appbar.dart';
 import 'package:prep_words/components/custom_textField.dart';
@@ -138,10 +139,34 @@ class _SignInPageState extends State<SignInPage> {
                   width: MediaQuery.of(context).size.width *
                       0.7, // Make the button full-width
                   child: ElevatedButton(
-                    onPressed: () {
-                      //if (_formKey.currentState?.validate() ?? false) {
-                      Navigator.pushReplacementNamed(context, '/home');
-                      //}
+                    onPressed: () async {
+                      if (_formKey.currentState?.validate() ?? false) {
+                        try {
+                          // Firebase oturum açma
+                          await FirebaseAuth.instance
+                              .signInWithEmailAndPassword(
+                            email: _emailController.text.trim(),
+                            password: _passwordController.text.trim(),
+                          );
+
+                          // Başarılı giriş sonrası ana sayfaya yönlendir
+                          Navigator.pushReplacementNamed(context, '/home');
+                        } on FirebaseAuthException catch (e) {
+                          // Hata durumunda mesaj göster
+                          String errorMessage;
+                          if (e.code == 'user-not-found') {
+                            errorMessage = 'Böyle bir kullanıcı bulunamadı.';
+                          } else if (e.code == 'wrong-password') {
+                            errorMessage =
+                                'Şifre hatalı. Lütfen tekrar deneyin.';
+                          } else {
+                            errorMessage = 'Bir hata oluştu: ${e.message}';
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(errorMessage),
+                          ));
+                        }
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primary, // Button color

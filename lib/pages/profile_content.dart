@@ -26,15 +26,26 @@ class _ProfileContentState extends State<ProfileContent> {
         centerTitle: true,
         iconTheme: IconThemeData(color: textGreyColor),
         systemOverlayStyle: SystemUiOverlayStyle.dark,
-        title: Text('Profil'),
+        title: Text(
+          'Profil',
+          style: headingLarge.copyWith(fontSize: 30),
+        ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.edit, color: textGreyColor),
-            onPressed: () {
-              setState(() {
-                _isEditing = !_isEditing;
-              });
-            },
+          Padding(
+            padding: EdgeInsets.only(
+                right: MediaQuery.of(context).size.width * 0.03),
+            child: IconButton(
+              icon: Icon(
+                Icons.edit,
+                color: textGreyColor,
+                size: 32.0,
+              ),
+              onPressed: () {
+                setState(() {
+                  _isEditing = !_isEditing;
+                });
+              },
+            ),
           ),
         ],
       ),
@@ -59,7 +70,10 @@ class _ProfileContentState extends State<ProfileContent> {
               title: 'İsim Soyisim',
               subtitle: _isEditing
                   ? _buildEditableField(_nameController)
-                  : Text(_nameController.text), // Wrap text in a Text widget
+                  : Text(
+                      _nameController.text,
+                      style: bodyMedium,
+                    ), // Wrap text in a Text widget
             ),
             const SizedBox(height: 16),
             _buildProfileItem(
@@ -67,19 +81,28 @@ class _ProfileContentState extends State<ProfileContent> {
               title: 'E-posta',
               subtitle: _isEditing
                   ? _buildEditableField(_emailController)
-                  : Text(_emailController.text),
+                  : Text(
+                      _emailController.text,
+                      style: bodyMedium,
+                    ),
             ),
             const SizedBox(height: 16),
             _buildProfileItem(
               icon: Icons.bar_chart,
               title: 'Toplam İlerleme',
-              subtitle: Text('%45'),
+              subtitle: Text(
+                '%45',
+                style: bodyMedium,
+              ),
             ),
             const SizedBox(height: 16),
             _buildProfileItem(
               icon: Icons.calendar_today,
               title: 'Katılım Tarihi',
-              subtitle: Text('01.01.2024'),
+              subtitle: Text(
+                '01.01.2024',
+                style: bodyMedium,
+              ),
             ),
             const SizedBox(height: 32),
             if (_isEditing) _buildSaveButton(),
@@ -114,26 +137,17 @@ class _ProfileContentState extends State<ProfileContent> {
   Widget _buildSaveButton() {
     return ElevatedButton(
       onPressed: () {
-        // Save the updated information
-        String updatedName = _nameController.text;
-        String updatedEmail = _emailController.text;
-
-        // Example: Print the updated information
-        print('Yeni İsim: $updatedName');
-        print('Yeni E-posta: $updatedEmail');
-
-        // Close editing mode
         setState(() {
           _isEditing = false;
         });
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: primary,
-        padding: const EdgeInsets.symmetric(vertical: 14.0),
+        padding: EdgeInsets.all(14.0),
       ),
       child: const Text(
         'Kaydet',
-        style: TextStyle(color: textWhiteColor),
+        style: whiteButtonText,
       ),
     );
   }

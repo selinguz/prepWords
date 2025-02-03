@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:prep_words/components/custom_appbar.dart';
 import 'package:prep_words/components/custom_textField.dart';
 import 'package:prep_words/consts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -79,10 +80,41 @@ class _SignUpPageState extends State<SignUpPage> {
                   width: MediaQuery.of(context).size.width *
                       0.7, // Make the button full-width
                   child: ElevatedButton(
-                    onPressed: () {
-                      //if (_formKey.currentState?.validate() ?? false) {
-                      Navigator.pushReplacementNamed(context, '/home');
-                      //}
+                    onPressed: () async {
+                      if (_formKey.currentState?.validate() ?? false) {
+                        try {
+                          // Kullanıcıyı kaydet
+                          UserCredential userCredential = await FirebaseAuth
+                              .instance
+                              .createUserWithEmailAndPassword(
+                            email: _emailController.text.trim(),
+                            password: _passwordController.text.trim(),
+                          );
+
+                          // Kullanıcının ismini güncelle
+                          await userCredential.user
+                              ?.updateDisplayName(_nameController.text.trim());
+
+                          // Başarılı kayıt sonrası ana sayfaya yönlendir
+                          Navigator.pushReplacementNamed(context, '/home');
+                        } on FirebaseAuthException catch (e) {
+                          // Hata durumunda mesaj göster
+                          String errorMessage;
+                          if (e.code == 'email-already-in-use') {
+                            errorMessage = 'Bu email zaten kullanılıyor.';
+                          } else if (e.code == 'weak-password') {
+                            errorMessage =
+                                'Şifre çok zayıf. Lütfen daha güçlü bir şifre deneyin.';
+                          } else {
+                            errorMessage = 'Bir hata oluştu: ${e.message}';
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(errorMessage),
+                          ));
+
+                          print(errorMessage);
+                        }
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primary, // Button color
