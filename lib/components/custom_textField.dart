@@ -6,12 +6,14 @@ class CustomTextField extends StatelessWidget {
   final String hintText;
   final bool obscureText;
   final FormFieldValidator<String>? validator;
+  final Widget? suffixIcon;
 
   const CustomTextField({
     required this.controller,
     required this.hintText,
     this.obscureText = false,
     this.validator,
+    this.suffixIcon,
     super.key,
   });
 
@@ -26,6 +28,8 @@ class CustomTextField extends StatelessWidget {
         obscureText: obscureText,
         validator: validator,
         decoration: InputDecoration(
+          suffixIcon: suffixIcon,
+          suffixIconColor: Colors.grey,
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
           hintText: hintText,
