@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:prep_words/consts.dart';
@@ -105,7 +106,22 @@ class _ProfileContentState extends State<ProfileContent> {
               ),
             ),
             const SizedBox(height: 32),
-            if (_isEditing) _buildSaveButton(),
+            (_isEditing)
+                ? _buildSaveButton()
+                : ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primary,
+                      padding: EdgeInsets.all(14.0),
+                    ),
+                    onPressed: () async {
+                      await FirebaseAuth.instance.signOut();
+                      Navigator.pushReplacementNamed(context, '/signin');
+                    },
+                    child: const Text(
+                      "Çıkış Yap",
+                      style: whiteButtonText,
+                    ),
+                  )
           ],
         ),
       ),

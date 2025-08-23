@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:prep_words/consts.dart';
@@ -73,8 +74,17 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Timer(
-      Duration(seconds: 5),
-      () => Navigator.pushReplacementNamed(context, '/signin'),
+      const Duration(seconds: 3),
+      () {
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          // Kullanıcı giriş yapmış -> HomePage
+          Navigator.pushReplacementNamed(context, '/home');
+        } else {
+          // Kullanıcı giriş yapmamış -> SignInPage
+          Navigator.pushReplacementNamed(context, '/signin');
+        }
+      },
     );
   }
 
