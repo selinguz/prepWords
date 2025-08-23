@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+/* import 'package:flutter/material.dart';
 import 'package:prep_words/components/custom_appbar.dart';
 import 'package:prep_words/consts.dart';
 import 'package:prep_words/pages/categories_content.dart';
 import 'package:prep_words/pages/profile_content.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,6 +14,20 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  String _userName = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  void _loadUserName() {
+    final user = FirebaseAuth.instance.currentUser;
+    setState(() {
+      _userName = user?.displayName ?? 'Kullanıcı';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,39 +103,20 @@ class _HomePageState extends State<HomePage> {
                   radius: 30,
                   backgroundColor: textWhiteColor,
                   child: Text(
-                    'SG',
+                    _userName.isNotEmpty ? _userName[0].toUpperCase() : 'U',
                     style: headingMedium.copyWith(color: primary),
                   ),
                 ),
                 SizedBox(width: 16),
                 Text(
-                  'Hoş Geldin Selin',
+                  'Hoş Geldin $_userName',
                   style: headingMedium.copyWith(color: textWhiteColor),
                 ),
               ],
             ),
           ),
-
           SizedBox(height: 24),
-
           // Başlık
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: secondaryOrange,
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Text(
-              'Bir Yerden Başla!',
-              style: headingMedium,
-              textAlign: TextAlign.center,
-            ),
-          ),
-
-          SizedBox(height: 24),
-
-          // Seviye Kartları
           Expanded(
             child: ListView(
               children: [
@@ -246,6 +242,291 @@ class _HomePageState extends State<HomePage> {
             },
             icon: Icon(Icons.arrow_forward_ios, color: textGreyColor),
           ),
+        ],
+      ),
+    );
+  }
+} */
+
+import 'package:flutter/material.dart';
+import 'package:prep_words/consts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:prep_words/pages/levels_page.dart';
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String _userName = '';
+  final int _userLevel = 0; // Başlangıçta 0
+  final double _levelProgress = 0; // Başlangıçta %0
+
+  @override
+  void initState() {
+    super.initState();
+    final user = FirebaseAuth.instance.currentUser;
+    _userName = user?.displayName ?? 'Kullanıcı';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: backgrnd,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ListView(
+            children: [
+              // Kullanıcı Kartı
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [primary, secondaryOrange.withValues(alpha: 0.6)],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundColor: textWhiteColor,
+                          child: Text(
+                            _userName.isNotEmpty
+                                ? _userName[0].toUpperCase()
+                                : 'U',
+                            style: headingMedium.copyWith(color: primary),
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(_userName,
+                                style: headingMedium.copyWith(
+                                    color: textWhiteColor)),
+                            Text('Quiz Novice',
+                                style:
+                                    bodyMedium.copyWith(color: textWhiteColor)),
+                          ],
+                        ),
+                        Spacer(),
+                        Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: textWhiteColor.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.star,
+                                    color: Colors.amber,
+                                    size:
+                                        20), // ikon biraz büyüdü ve kontrast arttı
+                                SizedBox(width: 6),
+                                Text(
+                                  'Level $_userLevel',
+                                  style: TextStyle(
+                                    color: warnOrange,
+                                    fontSize: 14, // okunabilirliği artırdık
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            )),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    Text('Progress to next Level',
+                        style: bodySmall.copyWith(color: textWhiteColor)),
+                    SizedBox(height: 8),
+                    LinearProgressIndicator(
+                      value: _levelProgress, // 0.0 - 1.0
+                      backgroundColor: Colors.white24,
+                      color: Colors.orangeAccent,
+                      minHeight: 10,
+                    ),
+                    SizedBox(height: 4),
+                    Text('${(_levelProgress * 100).round()}% Complete',
+                        style: bodySmall.copyWith(color: textWhiteColor)),
+                  ],
+                ),
+              ),
+              SizedBox(height: 20),
+
+              // İstatistik Kartları
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: textWhiteColor,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              blurRadius: 5,
+                              offset: Offset(0, 3))
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Icon(Icons.local_fire_department,
+                              color: secondaryOrange),
+                          SizedBox(height: 8),
+                          Text('Current Streak', style: bodySmall),
+                          Text('1', style: headingMedium),
+                          Text('Keep it up! 👍',
+                              style: bodySmall.copyWith(color: secondaryBlue))
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  /* Expanded(
+                    child: Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: textWhiteColor,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              blurRadius: 5,
+                              offset: Offset(0, 3))
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.question_answer, color: Colors.lightBlue),
+                          SizedBox(height: 8),
+                          Text('2', style: headingMedium),
+                          Text('Total Quizzes', style: bodySmall),
+                          Text('65.0% accuracy',
+                              style:
+                                  bodySmall.copyWith(color: Colors.lightBlue))
+                        ],
+                      ),
+                    ),
+                  ),
+                */
+                ],
+              ),
+              SizedBox(height: 20),
+
+              // Quick Actions
+              Text('Quick Actions', style: headingMedium),
+              SizedBox(height: 8),
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                physics: NeverScrollableScrollPhysics(),
+                children: [
+                  _levelCard('Başlangıç', '6 Ünite', Icons.school, Colors.green,
+                      () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => LevelsPage(
+                            level: 1, levelName: 'Başlangıç', unitCount: 6),
+                      ),
+                    );
+                  }),
+                  _levelCard('Orta', '22 Ünite', Icons.school, Colors.orange,
+                      () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => LevelsPage(
+                            level: 2, levelName: 'Orta', unitCount: 22),
+                      ),
+                    );
+                  }),
+                  _levelCard('İleri', '20 Ünite', Icons.school, Colors.red, () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => LevelsPage(
+                            level: 3, levelName: 'İleri', unitCount: 20),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+
+              SizedBox(height: 20),
+              Text('Recent Achievements', style: headingMedium),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text('View All',
+                    style: bodySmall.copyWith(
+                        color: primary, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _levelCard(String title, String subtitle, IconData icon, Color color,
+      VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: color, size: 30),
+            SizedBox(height: 12),
+            Text(title, style: headingMedium),
+            SizedBox(height: 4),
+            Text(subtitle, style: bodySmall),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _quickActionCard(String title, String subtitle, IconData icon) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: textWhiteColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 5,
+              offset: Offset(0, 3))
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: primary, size: 30),
+          SizedBox(height: 12),
+          Text(title, style: headingMedium),
+          SizedBox(height: 4),
+          Text(subtitle, style: bodySmall),
         ],
       ),
     );
