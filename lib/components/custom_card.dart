@@ -45,11 +45,11 @@ class _CustomFlipCardState extends State<CustomFlipCard> {
       child: Container(
         padding: EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: primary.withAlpha(220),
+          color: getFrontColor(widget.word.wordType),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: primary.withAlpha(40),
+              color: getFrontColor(widget.word.wordType).withAlpha(40),
               blurRadius: 12,
               offset: Offset(0, 4),
             ),
@@ -137,11 +137,11 @@ class _CustomFlipCardState extends State<CustomFlipCard> {
       child: Container(
         padding: EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: secondaryOrange,
+          color: getBackColor(widget.word.wordType),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: secondaryOrange.withAlpha(40),
+              color: getBackColor(widget.word.wordType).withAlpha(40),
               blurRadius: 12,
               offset: Offset(0, 4),
             ),

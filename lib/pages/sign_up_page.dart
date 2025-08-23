@@ -16,6 +16,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _isPasswordVisible = false; // Şifre görünürlüğü için değişken
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +67,19 @@ class _SignUpPageState extends State<SignUpPage> {
                     CustomTextField(
                       controller: _passwordController,
                       hintText: 'Şifre',
-                      obscureText: true,
+                      obscureText: !_isPasswordVisible,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Lütfen şifrenizi girin';

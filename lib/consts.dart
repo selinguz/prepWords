@@ -13,6 +13,45 @@ const Color cardFrontColor = Color(0xFF333333);
 const Color cardBackColor = Color(0xFFF8F8F8);
 const Color warnOrange = Color(0xFFFF715B);
 
+const Color nounsFront = Color(0xFF4A90E2);
+const Color nounsBack = Color(0xFFD6E6FA);
+const Color adjsFront = Color(0xFF81C784);
+const Color adjsBack = Color(0xFFDFF1E2);
+const Color verbsFront = Color(0xFFE57373);
+const Color verbsBack = Color(0xFFF8D6D6);
+const Color advsFront = Color(0xFFFBC02D);
+const Color advsBack = Color(0xFFFFF3D1);
+
+Color getFrontColor(String wordType) {
+  switch (wordType) {
+    case 'Noun - İsim':
+      return nounsFront;
+    case 'Adjective - Sıfat':
+      return adjsFront;
+    case 'Verb - Fiil':
+      return verbsFront;
+    case 'Adverb - Zarf':
+      return advsFront;
+    default:
+      return Colors.grey; // Varsayılan renk
+  }
+}
+
+Color getBackColor(String wordType) {
+  switch (wordType) {
+    case 'Noun - İsim':
+      return nounsBack;
+    case 'Adjective - Sıfat':
+      return adjsBack;
+    case 'Verb - Fiil':
+      return verbsBack;
+    case 'Adverb - Zarf':
+      return advsBack;
+    default:
+      return Colors.grey[200]!; // Varsayılan renk
+  }
+}
+
 // Typography - Headings (Montserrat)
 const TextStyle headingLarge = TextStyle(
   fontFamily: 'Montserrat',

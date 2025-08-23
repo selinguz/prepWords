@@ -49,7 +49,6 @@ class _WordsPageState extends State<WordsPage> {
           }
 
           final words = snapshot.data!;
-          print('Mevcut kelime: ${words[currentPage].englishWord}');
 
           return Column(
             children: [
@@ -62,7 +61,7 @@ class _WordsPageState extends State<WordsPage> {
                   onPageChanged: (index) {
                     setState(() {
                       currentPage = index;
-                      print('Sayfa değişti. Yeni index: $index');
+                      
                     });
                   },
                   itemBuilder: (context, index) {
@@ -70,7 +69,7 @@ class _WordsPageState extends State<WordsPage> {
                       padding: const EdgeInsets.all(16.0),
                       child: CustomFlipCard(
                         key:
-                            ValueKey(words[index].englishWord), // Benzersiz key
+                            ValueKey(words[index].englishWord), 
                         word: words[currentPage],
                       ),
                     );
