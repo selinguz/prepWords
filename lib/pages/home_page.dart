@@ -248,9 +248,7 @@ class _HomePageState extends State<HomePage> {
   }
 } */
 
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:prep_words/consts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:prep_words/data/level_data.dart';
@@ -341,7 +339,7 @@ class _HomePageState extends State<HomePage> {
 
     // 🔹 Kullanıcının işaretlediği bilinen kelime sayısı
     // Burayı veri tabanından veya state'ten alman gerekiyor
-    int knownWords = 142; // Örnek değer, dinamik olarak değiştirilecek
+    int knownWords = 0; // Örnek değer, dinamik olarak değiştirilecek
 
     // 🔹 Progress yüzdesi
     final double levelProgress = knownWords / totalWords;

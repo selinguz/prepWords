@@ -5,10 +5,12 @@ import 'package:prep_words/models/word.dart';
 
 class CustomFlipCard extends StatefulWidget {
   final WordModel word;
+  final ValueChanged<WordStatus>? onStatusChanged;
 
   const CustomFlipCard({
     super.key,
     required this.word,
+    this.onStatusChanged,
   });
 
   @override

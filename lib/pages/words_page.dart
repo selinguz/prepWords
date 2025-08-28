@@ -4,6 +4,8 @@ import 'package:prep_words/components/custom_card.dart';
 import 'package:prep_words/consts.dart';
 import 'package:prep_words/models/word.dart';
 import 'package:prep_words/services/firebase_service.dart';
+import 'package:prep_words/services/unit_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WordsPage extends StatefulWidget {
   final int unit;
@@ -30,6 +32,34 @@ class _WordsPageState extends State<WordsPage> {
     super.dispose();
   }
 
+  void onUnitCompleted() async {
+    final nextUnit = widget.unit + 1;
+    await UnitStorage.unlockUnit(nextUnit);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+          content:
+              Text('Tüm kelimeleri tamamladınız! Ünite $nextUnit açıldı.')),
+    );
+  }
+
+  void _onUnitCompleted() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Üniteyi tamamlandı olarak kaydet
+    prefs.setBool('unit_${widget.unit}_completed', true);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+          content:
+              Text('Tebrikler! Bu ünitenin tüm kelimelerini tamamladınız.')),
+    );
+
+    // Burada isteğe bağlı olarak bir sonraki üniteyi açmak için
+    int nextUnit = widget.unit + 1;
+    prefs.setBool('unit_${nextUnit}_unlocked', true);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,6 +79,9 @@ class _WordsPageState extends State<WordsPage> {
           }
 
           final words = snapshot.data!;
+          final totalWords = words.length;
+          int knownCount =
+              words.where((w) => w.status == WordStatus.known).length;
 
           return Column(
             children: [
@@ -61,16 +94,24 @@ class _WordsPageState extends State<WordsPage> {
                   onPageChanged: (index) {
                     setState(() {
                       currentPage = index;
-                      
                     });
                   },
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: CustomFlipCard(
-                        key:
-                            ValueKey(words[index].englishWord), 
+                        key: ValueKey(words[index].englishWord),
                         word: words[currentPage],
+                        onStatusChanged: (status) {
+                          setState(() {
+                            words[currentPage].status = status;
+                          });
+                          // Tüm kelimeler biliniyorsa üniteyi tamamla
+                          if (words
+                              .every((w) => w.status == WordStatus.known)) {
+                            onUnitCompleted();
+                          }
+                        },
                       ),
                     );
                   },
@@ -79,7 +120,7 @@ class _WordsPageState extends State<WordsPage> {
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: Text(
-                  '${currentPage + 1} / ${words.length}',
+                  '${currentPage + 1} / $totalWords',
                   style: TextStyle(
                     color: textGreyColor,
                     fontSize: 16,
@@ -103,24 +144,8 @@ class _WordsPageState extends State<WordsPage> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        onPressed: () {
-                          if (currentPage < words.length - 1) {
-                            setState(() {
-                              currentPage++;
-                            });
-                            _pageController.animateToPage(
-                              currentPage,
-                              duration: Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content:
-                                      Text('Tüm kelimeleri tamamladınız!')),
-                            );
-                          }
-                        },
+                        onPressed: () =>
+                            _markCurrentWord(WordStatus.known, words),
                         child: Text('Biliyorum',
                             style: TextStyle(color: textWhiteColor)),
                       ),
@@ -133,24 +158,8 @@ class _WordsPageState extends State<WordsPage> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        onPressed: () {
-                          if (currentPage < words.length - 1) {
-                            setState(() {
-                              currentPage++;
-                            });
-                            _pageController.animateToPage(
-                              currentPage,
-                              duration: Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content:
-                                      Text('Tüm kelimeleri tamamladınız!')),
-                            );
-                          }
-                        },
+                        onPressed: () =>
+                            _markCurrentWord(WordStatus.unsure, words),
                         child: Text('Emin Değilim',
                             style: TextStyle(color: textWhiteColor)),
                       ),
@@ -163,24 +172,8 @@ class _WordsPageState extends State<WordsPage> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        onPressed: () {
-                          if (currentPage < words.length - 1) {
-                            setState(() {
-                              currentPage++;
-                            });
-                            _pageController.animateToPage(
-                              currentPage,
-                              duration: Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content:
-                                      Text('Tüm kelimeleri tamamladınız!')),
-                            );
-                          }
-                        },
+                        onPressed: () =>
+                            _markCurrentWord(WordStatus.unknown, words),
                         child: Text('Bilmiyorum',
                             style: TextStyle(color: textWhiteColor)),
                       ),
@@ -193,5 +186,30 @@ class _WordsPageState extends State<WordsPage> {
         },
       ),
     );
+  }
+
+  void _markCurrentWord(WordStatus status, List<WordModel> words) {
+    setState(() {
+      words[currentPage].status = status;
+
+      // Eğer sayfanın sonundayız
+      if (currentPage < words.length - 1) {
+        currentPage++;
+        _pageController.animateToPage(
+          currentPage,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      } else {
+        // Ünite tamamlandı mı kontrol et
+        if (words.every((w) => w.status == WordStatus.known)) {
+          _onUnitCompleted();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Tüm kelimeleri tamamladınız!')),
+          );
+        }
+      }
+    });
   }
 }

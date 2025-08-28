@@ -1,3 +1,5 @@
+enum WordStatus { unknown, unsure, known }
+
 class WordModel {
   final String englishWord;
   final String turkishMeaning;
@@ -5,6 +7,9 @@ class WordModel {
   final String exampleSentence;
   final String exampleTranslation;
   final int unit;
+  
+  // UI durumunu tutacak
+  WordStatus status;
 
   WordModel({
     required this.englishWord,
@@ -13,6 +18,7 @@ class WordModel {
     required this.exampleSentence,
     required this.exampleTranslation,
     required this.unit,
+    this.status = WordStatus.unknown,
   });
 
   factory WordModel.fromMap(Map<String, dynamic> map) {
@@ -23,6 +29,7 @@ class WordModel {
       exampleSentence: map['exampleSentence'] ?? '',
       exampleTranslation: map['exampleTranslation'] ?? '',
       unit: map['unit'] ?? 0,
+      status: WordStatus.unknown, // yeni eklenen default durum
     );
   }
 }
