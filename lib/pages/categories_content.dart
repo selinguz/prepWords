@@ -88,11 +88,11 @@ class _CategoriesContentState extends State<CategoriesContent> {
           },
           child: Container(
             decoration: BoxDecoration(
-              color: primary,
+              color: getFrontColor(wordTypes[index]),
               borderRadius: BorderRadius.circular(15),
               boxShadow: [
                 BoxShadow(
-                  color: primary.withAlpha(2),
+                  color: getFrontColor(wordTypes[index]).withValues(alpha: 0.3),
                   blurRadius: 8,
                   offset: Offset(0, 4),
                 ),

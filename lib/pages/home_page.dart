@@ -248,12 +248,13 @@ class _HomePageState extends State<HomePage> {
   }
 } */
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:prep_words/consts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:prep_words/data/level_data.dart';
 import 'package:prep_words/pages/levels_page.dart';
-
-// 🔽 Kategoriler ve Profil sayfalarını ekliyoruz
 import 'package:prep_words/pages/categories_content.dart';
 import 'package:prep_words/pages/profile_content.dart';
 
@@ -335,12 +336,30 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBody() {
+    // 🔹 Toplam kelime sayısı
+    final int totalWords = 960;
+
+    // 🔹 Kullanıcının işaretlediği bilinen kelime sayısı
+    // Burayı veri tabanından veya state'ten alman gerekiyor
+    int knownWords = 142; // Örnek değer, dinamik olarak değiştirilecek
+
+    // 🔹 Progress yüzdesi
+    final double levelProgress = knownWords / totalWords;
+
+    // 🔹 Level hesaplama: her 20 kelime bir level artıyor
+    final int userLevel = (knownWords / 20).ceil().clamp(1, 48);
+
+    // 🔹 Level name ve motto
+    final levelName = LevelData.getLevelName(userLevel);
+    final motto = LevelData.getLevelMotto(userLevel);
+
     if (_selectedIndex == 0) {
       return SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: ListView(
             children: [
+              // ------------------ Profil Kartı ------------------
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -353,7 +372,9 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // 🔹 Kullanıcı avatarı
                         CircleAvatar(
                           radius: 30,
                           backgroundColor: textWhiteColor,
@@ -365,60 +386,84 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(_userName,
+
+                        // 🔹 Kullanıcı adı ve level bilgisi
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _userName,
                                 style: headingMedium.copyWith(
-                                    color: textWhiteColor)),
-                            Text('Quiz Novice',
+                                    color: textWhiteColor),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                "Level: $levelName",
                                 style:
-                                    bodyMedium.copyWith(color: textWhiteColor)),
-                          ],
+                                    bodyMedium.copyWith(color: textWhiteColor),
+                              ),
+                            ],
+                          ),
                         ),
-                        Spacer(),
+
+                        // 🔹 Yıldızlı level container
                         Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: textWhiteColor.withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.star, color: Colors.amber, size: 20),
-                                SizedBox(width: 6),
-                                Text(
-                                  'Level $_userLevel',
-                                  style: TextStyle(
-                                    color: warnOrange,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: textWhiteColor.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.star, color: Colors.amber, size: 20),
+                              SizedBox(width: 6),
+                              Text(
+                                'Level $userLevel',
+                                style: TextStyle(
+                                  color: warnOrange,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                              ],
-                            )),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
+
+                    SizedBox(height: 12),
+
+                    // 🔹 Motto: tüm satır gösterilsin, level name ile aynı hizada başlasın
+                    Text(
+                      motto,
+                      style: bodyMedium.copyWith(color: textWhiteColor),
+                      softWrap: true,
+                    ),
+
                     SizedBox(height: 16),
-                    Text('Progress to next Level',
+
+                    // 🔹 Progress bar
+                    Text('Progress',
                         style: bodySmall.copyWith(color: textWhiteColor)),
                     SizedBox(height: 8),
                     LinearProgressIndicator(
-                      value: _levelProgress, // 0.0 - 1.0
+                      value: levelProgress, // 0.0 - 1.0
                       backgroundColor: Colors.white24,
                       color: Colors.orangeAccent,
                       minHeight: 10,
                     ),
                     SizedBox(height: 4),
-                    Text('${(_levelProgress * 100).round()}% Complete',
+                    Text('${(levelProgress * 100).round()}% Complete',
                         style: bodySmall.copyWith(color: textWhiteColor)),
                   ],
                 ),
               ),
+
               SizedBox(height: 20),
 
-              // İstatistik Kartları
+              // ------------------ İstatistik Kartları ------------------
               Row(
                 children: [
                   Expanded(
@@ -448,40 +493,12 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-                  SizedBox(width: 16),
-                  /* Expanded(
-                    child: Container(
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: textWhiteColor,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.grey.withOpacity(0.1),
-                              blurRadius: 5,
-                              offset: Offset(0, 3))
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(Icons.question_answer, color: Colors.lightBlue),
-                          SizedBox(height: 8),
-                          Text('2', style: headingMedium),
-                          Text('Total Quizzes', style: bodySmall),
-                          Text('65.0% accuracy',
-                              style:
-                                  bodySmall.copyWith(color: Colors.lightBlue))
-                        ],
-                      ),
-                    ),
-                  ),
-                */
                 ],
               ),
+
               SizedBox(height: 20),
 
-              // Quick Actions
+              // ------------------ Quick Actions ------------------
               Text('Quick Actions', style: headingMedium),
               SizedBox(height: 8),
               GridView.count(
@@ -522,25 +539,13 @@ class _HomePageState extends State<HomePage> {
                   }),
                 ],
               ),
-
-              SizedBox(height: 20),
-              //Recent Achievements Bölümü
-              /* Text('Recent Achievements', style: headingMedium),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Text('View All',
-                    style: bodySmall.copyWith(
-                        color: primary, fontWeight: FontWeight.bold)),
-              ), */
             ],
           ),
         ),
       );
     } else if (_selectedIndex == 1) {
-      // ————— KATEGORİLER —————
       return CategoriesContent();
     } else {
-      // ————— PROFİL —————
       return ProfileContent();
     }
   }
@@ -565,32 +570,6 @@ class _HomePageState extends State<HomePage> {
             Text(subtitle, style: bodySmall),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _quickActionCard(String title, String subtitle, IconData icon) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: textWhiteColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.1),
-              blurRadius: 5,
-              offset: Offset(0, 3))
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: primary, size: 30),
-          SizedBox(height: 12),
-          Text(title, style: headingMedium),
-          SizedBox(height: 4),
-          Text(subtitle, style: bodySmall),
-        ],
       ),
     );
   }
