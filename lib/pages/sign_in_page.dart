@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:prep_words/components/custom_appbar.dart';
-import 'package:prep_words/components/custom_textField.dart';
+import 'package:prep_words/components/custom_text_field.dart';
 import 'package:prep_words/consts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -100,8 +100,9 @@ class _SignInPageState extends State<SignInPage> {
                                 controller: _emailController,
                                 hintText: 'Email',
                                 validator: (value) {
-                                  if (value?.isEmpty ?? true)
+                                  if (value?.isEmpty ?? true) {
                                     return 'Email gerekli';
+                                  }
                                   return null;
                                 },
                               ),
@@ -122,10 +123,12 @@ class _SignInPageState extends State<SignInPage> {
                                   },
                                 ),
                                 validator: (value) {
-                                  if (value?.isEmpty ?? true)
+                                  if (value?.isEmpty ?? true) {
                                     return 'Şifre gerekli';
-                                  if (value!.length < 6)
+                                  }
+                                  if (value!.length < 6) {
                                     return 'Şifre en az 6 karakter olmalı';
+                                  }
                                   return null;
                                 },
                               ),

@@ -22,7 +22,6 @@ class _CategoriesContentState extends State<CategoriesContent> {
       appBar: CustomAppBar(title: 'Kategoriler'),
       body: Column(
         children: [
-          // Görünüm seçenekleri
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
@@ -192,7 +191,7 @@ class _CategoriesContentState extends State<CategoriesContent> {
                   physics: NeverScrollableScrollPhysics(),
                   itemCount: words.length,
                   separatorBuilder: (context, index) => Divider(
-                    color: Colors.grey.withOpacity(0.2),
+                    color: Colors.grey.withValues(alpha: 0.2),
                     height: 1,
                     indent: 16,
                     endIndent: 16,

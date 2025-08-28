@@ -11,14 +11,47 @@ class ProfileContent extends StatefulWidget {
 }
 
 class _ProfileContentState extends State<ProfileContent> {
-  final TextEditingController _nameController =
-      TextEditingController(text: 'Selin Güzel');
-  final TextEditingController _emailController =
-      TextEditingController(text: 'selin@example.com');
+  late TextEditingController _nameController;
+  late TextEditingController _emailController;
   bool _isEditing = false;
 
   @override
+  void initState() {
+    super.initState();
+    final user = FirebaseAuth.instance.currentUser;
+
+    _nameController = TextEditingController(text: user?.displayName ?? "");
+    _emailController = TextEditingController(text: user?.email ?? "");
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  String getInitials(String name) {
+    if (name.trim().isEmpty) return "?";
+
+    final parts = name.trim().split(" ");
+    if (parts.length == 1) {
+      return parts[0][0].toUpperCase();
+    } else {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final displayName = user?.displayName ?? "";
+
+    final creationTime = user?.metadata.creationTime;
+    final formattedDate = creationTime != null
+        ? "${creationTime.day.toString().padLeft(2, '0')}.${creationTime.month.toString().padLeft(2, '0')}.${creationTime.year}"
+        : "-";
+
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: kToolbarHeight * 1.2,
@@ -54,11 +87,11 @@ class _ProfileContentState extends State<ProfileContent> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 50,
               backgroundColor: primary,
               child: Text(
-                'SG',
+                getInitials(displayName),
                 style: TextStyle(
                   fontSize: 32,
                   color: textWhiteColor,
@@ -101,8 +134,8 @@ class _ProfileContentState extends State<ProfileContent> {
               icon: Icons.calendar_today,
               title: 'Katılım Tarihi',
               subtitle: Text(
-                '01.01.2024',
-                style: bodyMedium,
+                formattedDate,
+                style: const TextStyle(fontSize: 16),
               ),
             ),
             const SizedBox(height: 32),
@@ -152,7 +185,14 @@ class _ProfileContentState extends State<ProfileContent> {
 
   Widget _buildSaveButton() {
     return ElevatedButton(
-      onPressed: () {
+      onPressed: () async {
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          await user.updateDisplayName(_nameController.text.trim());
+          await user.verifyBeforeUpdateEmail(_emailController.text.trim());
+          await user.reload();
+        }
+
         setState(() {
           _isEditing = false;
         });

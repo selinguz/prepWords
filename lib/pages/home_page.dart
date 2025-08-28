@@ -253,6 +253,10 @@ import 'package:prep_words/consts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:prep_words/pages/levels_page.dart';
 
+// 🔽 Kategoriler ve Profil sayfalarını ekliyoruz
+import 'package:prep_words/pages/categories_content.dart';
+import 'package:prep_words/pages/profile_content.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -261,6 +265,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 0;
   String _userName = '';
   final int _userLevel = 0; // Başlangıçta 0
   final double _levelProgress = 0; // Başlangıçta %0
@@ -269,19 +274,73 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     final user = FirebaseAuth.instance.currentUser;
-    _userName = user?.displayName ?? 'Kullanıcı';
+    if (user != null) {
+      user.reload().then((_) {
+        // güncel bilgiyi al
+        setState(() {
+          _userName = user.displayName ?? 'Kullanıcı';
+        });
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgrnd,
-      body: SafeArea(
+      // 🔽 body artık aktif sekmeye göre değişiyor
+      body: _buildBody(),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              primary,
+              secondaryOrange.withValues(alpha: 0.6),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: BottomNavigationBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          currentIndex: _selectedIndex,
+          onTap: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          selectedItemColor: textWhiteColor,
+          unselectedItemColor: textGreyColor,
+          selectedLabelStyle: bodySmall.copyWith(fontWeight: FontWeight.w600),
+          unselectedLabelStyle: bodySmall,
+          type: BottomNavigationBarType.fixed,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_rounded),
+              label: 'Ana Sayfa',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.category_rounded),
+              label: 'Kategoriler',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_rounded),
+              label: 'Profil',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_selectedIndex == 0) {
+      return SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: ListView(
             children: [
-              // Kullanıcı Kartı
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -322,21 +381,18 @@ class _HomePageState extends State<HomePage> {
                             padding: EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: textWhiteColor.withOpacity(0.3),
+                              color: textWhiteColor.withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.star,
-                                    color: Colors.amber,
-                                    size:
-                                        20), // ikon biraz büyüdü ve kontrast arttı
+                                Icon(Icons.star, color: Colors.amber, size: 20),
                                 SizedBox(width: 6),
                                 Text(
                                   'Level $_userLevel',
                                   style: TextStyle(
                                     color: warnOrange,
-                                    fontSize: 14, // okunabilirliği artırdık
+                                    fontSize: 14,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -373,7 +429,7 @@ class _HomePageState extends State<HomePage> {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                              color: Colors.grey.withOpacity(0.1),
+                              color: Colors.grey.withValues(alpha: 0.1),
                               blurRadius: 5,
                               offset: Offset(0, 3))
                         ],
@@ -468,18 +524,25 @@ class _HomePageState extends State<HomePage> {
               ),
 
               SizedBox(height: 20),
-              Text('Recent Achievements', style: headingMedium),
+              //Recent Achievements Bölümü
+              /* Text('Recent Achievements', style: headingMedium),
               Align(
                 alignment: Alignment.centerRight,
                 child: Text('View All',
                     style: bodySmall.copyWith(
                         color: primary, fontWeight: FontWeight.bold)),
-              ),
+              ), */
             ],
           ),
         ),
-      ),
-    );
+      );
+    } else if (_selectedIndex == 1) {
+      // ————— KATEGORİLER —————
+      return CategoriesContent();
+    } else {
+      // ————— PROFİL —————
+      return ProfileContent();
+    }
   }
 
   Widget _levelCard(String title, String subtitle, IconData icon, Color color,
@@ -489,7 +552,7 @@ class _HomePageState extends State<HomePage> {
       child: Container(
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -514,7 +577,7 @@ class _HomePageState extends State<HomePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               blurRadius: 5,
               offset: Offset(0, 3))
         ],
