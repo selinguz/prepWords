@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:prep_words/components/custom_appbar.dart';
 import 'package:prep_words/components/custom_card.dart';
@@ -80,8 +82,8 @@ class _WordsPageState extends State<WordsPage> {
 
           final words = snapshot.data!;
           final totalWords = words.length;
-          int knownCount =
-              words.where((w) => w.status == WordStatus.known).length;
+          //int knownCount =
+              //words.where((w) => w.status == WordStatus.known).length;
 
           return Column(
             children: [
