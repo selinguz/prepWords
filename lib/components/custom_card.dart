@@ -14,7 +14,7 @@ class CustomFlipCard extends StatefulWidget {
   });
 
   @override
-CustomFlipCardState createState() => CustomFlipCardState();
+  CustomFlipCardState createState() => CustomFlipCardState();
 }
 
 class CustomFlipCardState extends State<CustomFlipCard> {

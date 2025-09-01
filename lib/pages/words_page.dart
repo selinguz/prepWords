@@ -21,11 +21,13 @@ class _WordsPageState extends State<WordsPage> {
   late PageController _pageController;
   int currentPage = 0;
   List<WordModel> words = [];
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
+    _loadWords();
   }
 
   @override
@@ -51,12 +53,19 @@ class _WordsPageState extends State<WordsPage> {
     );
   }
 
-  /// 🔹 Firebase’den gelen kelimelere kaydedilmiş durumları uygula
-  Future<List<WordModel>> _loadWords(List<WordModel> fetchedWords) async {
+  /// 🔹 Kelimeleri yükle ve durumları uygula
+  Future<void> _loadWords() async {
+    final fetchedWords = await firebaseService.fetchWordsByUnit(widget.unit);
+
+    // Her kelimenin durumu SharedPreferences'ta varsa onu al, yoksa unknown ata
     for (var w in fetchedWords) {
       w.status = await _loadWordStatus(w.englishWord);
     }
-    return fetchedWords;
+
+    setState(() {
+      words = fetchedWords;
+      isLoading = false;
+    });
   }
 
   /// 🔹 Ünite tamamlandığında SharedPreferences ve UI bildirimi
@@ -77,7 +86,6 @@ class _WordsPageState extends State<WordsPage> {
   /// 🔹 Sonraki kelimeye geç (kaydırma veya buton)
   void _nextPage({bool markUnknownIfEmpty = false}) {
     if (markUnknownIfEmpty) {
-      // Eğer kullanıcı işaretlemeden kaydırıyorsa
       if (words[currentPage].status == WordStatus.unknown) {
         _saveWordStatus(words[currentPage].englishWord, WordStatus.unknown);
       }
@@ -114,118 +122,113 @@ class _WordsPageState extends State<WordsPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return Scaffold(
+        appBar: CustomAppBar(title: 'Ünite ${widget.unit}'),
+        backgroundColor: backgrnd,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final totalWords = words.length;
+
     return Scaffold(
       appBar: CustomAppBar(
         title: 'Ünite ${widget.unit}',
       ),
       backgroundColor: backgrnd,
-      body: FutureBuilder<List<WordModel>>(
-        future: firebaseService.fetchWordsByUnit(widget.unit).then(_loadWords),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Hata: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('Bu ünitede kelime bulunamadı.'));
-          }
-
-          words = snapshot.data!;
-          final totalWords = words.length;
-
-          return Column(
-            children: [
-              Expanded(
-                flex: 80,
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: words.length,
-                  physics: ClampingScrollPhysics(),
-                  onPageChanged: (index) {
-                    // Kaydırmayla geçiş: önce eski kelimeyi unknown kaydet
-                    if (index > currentPage) {
-                      _nextPage(markUnknownIfEmpty: true);
-                    }
-                  },
-                  itemBuilder: (context, index) {
-                    // Sadece currentPage’i göster
-                    if (index != currentPage) return SizedBox.shrink();
-
-                    return Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: CustomFlipCard(
-                        key: ValueKey(words[index].englishWord),
-                        word: words[index],
-                        onStatusChanged: (status) {
-                          setState(() {
-                            words[currentPage].status = status;
-                          });
-                          _saveWordStatus(
-                              words[currentPage].englishWord, status);
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: Text(
-                  '${currentPage + 1} / $totalWords',
-                  style: TextStyle(
-                    color: textGreyColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+      body: Column(
+        children: [
+          Expanded(
+            flex: 80,
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: words.length,
+              physics: ClampingScrollPhysics(),
+              onPageChanged: (index) {
+                // Kullanıcı kaydırma yaparsa önceki kelimeyi kaydet
+                if (index > currentPage) {
+                  _nextPage(markUnknownIfEmpty: true);
+                } else {
+                  setState(() {
+                    currentPage = index;
+                  });
+                }
+              },
+              itemBuilder: (context, index) {
+                final word = words[index];
+                return Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: CustomFlipCard(
+                    key: ValueKey('${word.englishWord}_${word.status}'),
+                    word: word,
+                    onStatusChanged: (status) {
+                      setState(() {
+                        word.status = status;
+                      });
+                      _saveWordStatus(word.englishWord, status);
+                    },
                   ),
-                ),
+                );
+              },
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: Text(
+              '${currentPage + 1} / $totalWords',
+              style: TextStyle(
+                color: textGreyColor,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
-              Expanded(
-                flex: 20,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              words[currentPage].status == WordStatus.known
-                                  ? Colors.green
-                                  : Colors.grey,
-                        ),
-                        onPressed: () => _markWord(WordStatus.known),
-                        child: Text('Biliyorum',
-                            style: TextStyle(color: textWhiteColor)),
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              words[currentPage].status == WordStatus.unsure
-                                  ? Colors.orange
-                                  : Colors.grey,
-                        ),
-                        onPressed: () => _markWord(WordStatus.unsure),
-                        child: Text('Emin Değilim',
-                            style: TextStyle(color: textWhiteColor)),
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              words[currentPage].status == WordStatus.unknown
-                                  ? Colors.red
-                                  : Colors.grey,
-                        ),
-                        onPressed: () => _markWord(WordStatus.unknown),
-                        child: Text('Bilmiyorum',
-                            style: TextStyle(color: textWhiteColor)),
-                      ),
-                    ],
+            ),
+          ),
+          Expanded(
+            flex: 20,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          words[currentPage].status == WordStatus.known
+                              ? Colors.green
+                              : Colors.grey,
+                    ),
+                    onPressed: () => _markWord(WordStatus.known),
+                    child: Text('Biliyorum',
+                        style: TextStyle(color: textWhiteColor)),
                   ),
-                ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          words[currentPage].status == WordStatus.unsure
+                              ? Colors.orange
+                              : Colors.grey,
+                    ),
+                    onPressed: () => _markWord(WordStatus.unsure),
+                    child: Text('Emin Değilim',
+                        style: TextStyle(color: textWhiteColor)),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          words[currentPage].status == WordStatus.unknown
+                              ? Colors.red
+                              : Colors.grey,
+                    ),
+                    onPressed: () => _markWord(WordStatus.unknown),
+                    child: Text('Bilmiyorum',
+                        style: TextStyle(color: textWhiteColor)),
+                  ),
+                ],
               ),
-            ],
-          );
-        },
+            ),
+          ),
+        ],
       ),
     );
   }
