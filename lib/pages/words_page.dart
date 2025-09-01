@@ -6,7 +6,6 @@ import 'package:prep_words/components/custom_card.dart';
 import 'package:prep_words/consts.dart';
 import 'package:prep_words/models/word.dart';
 import 'package:prep_words/services/firebase_service.dart';
-import 'package:prep_words/services/unit_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class WordsPage extends StatefulWidget {
@@ -21,6 +20,7 @@ class _WordsPageState extends State<WordsPage> {
   final firebaseService = FirebaseService();
   late PageController _pageController;
   int currentPage = 0;
+  List<WordModel> words = [];
 
   @override
   void initState() {
@@ -34,21 +34,34 @@ class _WordsPageState extends State<WordsPage> {
     super.dispose();
   }
 
-  void onUnitCompleted() async {
-    final nextUnit = widget.unit + 1;
-    await UnitStorage.unlockUnit(nextUnit);
+  /// 🔹 SharedPreferences’a kelime durumunu kaydet
+  Future<void> _saveWordStatus(String word, WordStatus status) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('word_status_$word', status.toString());
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content:
-              Text('Tüm kelimeleri tamamladınız! Ünite $nextUnit açıldı.')),
+  /// 🔹 SharedPreferences’tan kelime durumunu al
+  Future<WordStatus> _loadWordStatus(String word) async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('word_status_$word');
+    if (saved == null) return WordStatus.unknown;
+    return WordStatus.values.firstWhere(
+      (s) => s.toString() == saved,
+      orElse: () => WordStatus.unknown,
     );
   }
 
+  /// 🔹 Firebase’den gelen kelimelere kaydedilmiş durumları uygula
+  Future<List<WordModel>> _loadWords(List<WordModel> fetchedWords) async {
+    for (var w in fetchedWords) {
+      w.status = await _loadWordStatus(w.englishWord);
+    }
+    return fetchedWords;
+  }
+
+  /// 🔹 Ünite tamamlandığında SharedPreferences ve UI bildirimi
   void _onUnitCompleted() async {
     final prefs = await SharedPreferences.getInstance();
-
-    // Üniteyi tamamlandı olarak kaydet
     prefs.setBool('unit_${widget.unit}_completed', true);
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -57,9 +70,46 @@ class _WordsPageState extends State<WordsPage> {
               Text('Tebrikler! Bu ünitenin tüm kelimelerini tamamladınız.')),
     );
 
-    // Burada isteğe bağlı olarak bir sonraki üniteyi açmak için
     int nextUnit = widget.unit + 1;
     prefs.setBool('unit_${nextUnit}_unlocked', true);
+  }
+
+  /// 🔹 Sonraki kelimeye geç (kaydırma veya buton)
+  void _nextPage({bool markUnknownIfEmpty = false}) {
+    if (markUnknownIfEmpty) {
+      // Eğer kullanıcı işaretlemeden kaydırıyorsa
+      if (words[currentPage].status == WordStatus.unknown) {
+        _saveWordStatus(words[currentPage].englishWord, WordStatus.unknown);
+      }
+    }
+
+    if (currentPage < words.length - 1) {
+      setState(() {
+        currentPage++;
+      });
+      _pageController.animateToPage(
+        currentPage,
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      if (words.every((w) => w.status == WordStatus.known)) {
+        _onUnitCompleted();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Tüm kelimeleri tamamladınız!')),
+        );
+      }
+    }
+  }
+
+  /// 🔹 Kelimeyi işaretle ve sonraki sayfaya geç
+  void _markWord(WordStatus status) {
+    setState(() {
+      words[currentPage].status = status;
+    });
+    _saveWordStatus(words[currentPage].englishWord, status);
+    _nextPage();
   }
 
   @override
@@ -70,7 +120,7 @@ class _WordsPageState extends State<WordsPage> {
       ),
       backgroundColor: backgrnd,
       body: FutureBuilder<List<WordModel>>(
-        future: firebaseService.fetchWordsByUnit(widget.unit),
+        future: firebaseService.fetchWordsByUnit(widget.unit).then(_loadWords),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -80,10 +130,8 @@ class _WordsPageState extends State<WordsPage> {
             return Center(child: Text('Bu ünitede kelime bulunamadı.'));
           }
 
-          final words = snapshot.data!;
+          words = snapshot.data!;
           final totalWords = words.length;
-          //int knownCount =
-              //words.where((w) => w.status == WordStatus.known).length;
 
           return Column(
             children: [
@@ -94,25 +142,26 @@ class _WordsPageState extends State<WordsPage> {
                   itemCount: words.length,
                   physics: ClampingScrollPhysics(),
                   onPageChanged: (index) {
-                    setState(() {
-                      currentPage = index;
-                    });
+                    // Kaydırmayla geçiş: önce eski kelimeyi unknown kaydet
+                    if (index > currentPage) {
+                      _nextPage(markUnknownIfEmpty: true);
+                    }
                   },
                   itemBuilder: (context, index) {
+                    // Sadece currentPage’i göster
+                    if (index != currentPage) return SizedBox.shrink();
+
                     return Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: CustomFlipCard(
                         key: ValueKey(words[index].englishWord),
-                        word: words[currentPage],
+                        word: words[index],
                         onStatusChanged: (status) {
                           setState(() {
                             words[currentPage].status = status;
                           });
-                          // Tüm kelimeler biliniyorsa üniteyi tamamla
-                          if (words
-                              .every((w) => w.status == WordStatus.known)) {
-                            onUnitCompleted();
-                          }
+                          _saveWordStatus(
+                              words[currentPage].englishWord, status);
                         },
                       ),
                     );
@@ -139,43 +188,34 @@ class _WordsPageState extends State<WordsPage> {
                     children: [
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          backgroundColor:
+                              words[currentPage].status == WordStatus.known
+                                  ? Colors.green
+                                  : Colors.grey,
                         ),
-                        onPressed: () =>
-                            _markCurrentWord(WordStatus.known, words),
+                        onPressed: () => _markWord(WordStatus.known),
                         child: Text('Biliyorum',
                             style: TextStyle(color: textWhiteColor)),
                       ),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          backgroundColor:
+                              words[currentPage].status == WordStatus.unsure
+                                  ? Colors.orange
+                                  : Colors.grey,
                         ),
-                        onPressed: () =>
-                            _markCurrentWord(WordStatus.unsure, words),
+                        onPressed: () => _markWord(WordStatus.unsure),
                         child: Text('Emin Değilim',
                             style: TextStyle(color: textWhiteColor)),
                       ),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          backgroundColor:
+                              words[currentPage].status == WordStatus.unknown
+                                  ? Colors.red
+                                  : Colors.grey,
                         ),
-                        onPressed: () =>
-                            _markCurrentWord(WordStatus.unknown, words),
+                        onPressed: () => _markWord(WordStatus.unknown),
                         child: Text('Bilmiyorum',
                             style: TextStyle(color: textWhiteColor)),
                       ),
@@ -188,30 +228,5 @@ class _WordsPageState extends State<WordsPage> {
         },
       ),
     );
-  }
-
-  void _markCurrentWord(WordStatus status, List<WordModel> words) {
-    setState(() {
-      words[currentPage].status = status;
-
-      // Eğer sayfanın sonundayız
-      if (currentPage < words.length - 1) {
-        currentPage++;
-        _pageController.animateToPage(
-          currentPage,
-          duration: Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      } else {
-        // Ünite tamamlandı mı kontrol et
-        if (words.every((w) => w.status == WordStatus.known)) {
-          _onUnitCompleted();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Tüm kelimeleri tamamladınız!')),
-          );
-        }
-      }
-    });
   }
 }

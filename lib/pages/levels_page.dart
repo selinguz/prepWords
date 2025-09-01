@@ -5,7 +5,7 @@ import 'package:prep_words/pages/words_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LevelsPage extends StatefulWidget {
-  final int level;
+  final int level; // 1: Başlangıç, 2: Orta, 3: İleri
   final String levelName;
   final int unitCount;
 
@@ -15,6 +15,20 @@ class LevelsPage extends StatefulWidget {
     required this.levelName,
     required this.unitCount,
   });
+
+  /// 🔹 Level’e göre global unit başlangıcı
+  int get startUnit {
+    switch (level) {
+      case 1:
+        return 1;
+      case 2:
+        return 7;
+      case 3:
+        return 29;
+      default:
+        return 1;
+    }
+  }
 
   @override
   State<LevelsPage> createState() => _LevelsPageState();
@@ -32,19 +46,21 @@ class _LevelsPageState extends State<LevelsPage> {
   Future<void> _loadUnlockedUnits() async {
     final prefs = await SharedPreferences.getInstance();
     unlockedUnits = List.generate(widget.unitCount, (index) {
-      // İlk ünite her zaman açık, diğerlerini cihaz hafızasından oku
-      if (index == 0) return true;
-      return prefs.getBool('unit_${index + 1}_unlocked') ?? false;
+      int globalUnit = widget.startUnit + index;
+      // İlk global unit her zaman açık
+      if (globalUnit == 1) return true;
+      return prefs.getBool('unit_${globalUnit}_unlocked') ?? false;
     });
     setState(() {});
   }
 
-  Future<void> _unlockNextUnit(int currentUnit) async {
+  Future<void> _unlockNextUnit(int currentIndex) async {
     final prefs = await SharedPreferences.getInstance();
-    int nextUnitIndex = currentUnit;
-    if (nextUnitIndex < widget.unitCount) {
-      unlockedUnits[nextUnitIndex] = true;
-      await prefs.setBool('unit_${nextUnitIndex + 1}_unlocked', true);
+    int nextIndex = currentIndex + 1;
+    if (nextIndex < widget.unitCount) {
+      int globalNextUnit = widget.startUnit + nextIndex;
+      unlockedUnits[nextIndex] = true;
+      await prefs.setBool('unit_${globalNextUnit}_unlocked', true);
       setState(() {});
     }
   }
@@ -63,6 +79,7 @@ class _LevelsPageState extends State<LevelsPage> {
         padding: const EdgeInsets.symmetric(vertical: 18.0),
         itemCount: widget.unitCount,
         itemBuilder: (context, index) {
+          int globalUnit = widget.startUnit + index;
           bool isUnlocked =
               unlockedUnits.isNotEmpty ? unlockedUnits[index] : (index == 0);
 
@@ -73,12 +90,12 @@ class _LevelsPageState extends State<LevelsPage> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => WordsPage(
-                          unit: index + 1,
+                          unit: globalUnit,
                         ),
                       ),
                     );
                     // Ünite tamamlandıysa bir sonraki ünitenin kilidini aç
-                    await _unlockNextUnit(index + 1);
+                    await _unlockNextUnit(index);
                   }
                 : null,
             child: Container(
@@ -113,7 +130,7 @@ class _LevelsPageState extends State<LevelsPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Ünite ${index + 1}',
+                              'Ünite $globalUnit',
                               style: headingMedium.copyWith(
                                 color: isUnlocked
                                     ? textGreyColor.withAlpha(179)

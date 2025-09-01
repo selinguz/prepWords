@@ -7,8 +7,7 @@ class WordModel {
   final String exampleSentence;
   final String exampleTranslation;
   final int unit;
-  
-  // UI durumunu tutacak
+
   WordStatus status;
 
   WordModel({
@@ -29,7 +28,19 @@ class WordModel {
       exampleSentence: map['exampleSentence'] ?? '',
       exampleTranslation: map['exampleTranslation'] ?? '',
       unit: map['unit'] ?? 0,
-      status: WordStatus.unknown, // yeni eklenen default durum
+      status: WordStatus.unknown,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'englishWord': englishWord,
+      'turkishMeaning': turkishMeaning,
+      'wordType': wordType,
+      'exampleSentence': exampleSentence,
+      'exampleTranslation': exampleTranslation,
+      'unit': unit,
+      'status': status.index, // SharedPref için int olarak saklıyoruz
+    };
   }
 }

@@ -160,7 +160,7 @@ class _HomePageState extends State<HomePage> {
                           padding:
                               EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: textWhiteColor.withValues(alpha:0.3),
+                            color: textWhiteColor.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
