@@ -5,6 +5,8 @@ import 'package:prep_words/data/level_data.dart';
 import 'package:prep_words/pages/levels_page.dart';
 import 'package:prep_words/pages/categories_content.dart';
 import 'package:prep_words/pages/profile_content.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:prep_words/models/word.dart'; // WordStatus için
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,8 +18,26 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   String _userName = '';
-  //final int _userLevel = 0; // Başlangıçta 0
-  //final double _levelProgress = 0; // Başlangıçta %0
+  int _knownWords = 0;
+  final int _totalWords = 960;
+
+  Future<void> _loadProgress() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    int count = 0;
+    for (var key in prefs.getKeys()) {
+      if (key.startsWith("word_status_")) {
+        final status = prefs.getString(key);
+        if (status == WordStatus.known.toString()) {
+          count++;
+        }
+      }
+    }
+
+    setState(() {
+      _knownWords = count;
+    });
+  }
 
   @override
   void initState() {
@@ -25,20 +45,42 @@ class _HomePageState extends State<HomePage> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       user.reload().then((_) {
-        // güncel bilgiyi al
         setState(() {
           _userName = user.displayName ?? 'Kullanıcı';
         });
       });
     }
+
+    _loadProgress();
+  }
+
+  // 🔹 ProfileContent’den çağırılacak callback
+  void _updateUserName(String newName) {
+    setState(() {
+      _userName = newName;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // 🔹 Progress yüzdesi
+    final double levelProgress = _knownWords / _totalWords;
+
+    // 🔹 Level hesaplama: her 20 kelime 1 level
+    final int userLevel = (_knownWords / 20).ceil().clamp(1, 48);
+
+    // 🔹 Level name ve motto
+    final levelName = LevelData.getLevelName(userLevel);
+    final motto = LevelData.getLevelMotto(userLevel);
+
     return Scaffold(
       backgroundColor: backgrnd,
-      // 🔽 body artık aktif sekmeye göre değişiyor
-      body: _buildBody(),
+      body: _buildBody(
+        levelProgress,
+        userLevel,
+        levelName,
+        motto,
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -83,24 +125,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildBody() {
-    // 🔹 Toplam kelime sayısı
-    final int totalWords = 960;
-
-    // 🔹 Kullanıcının işaretlediği bilinen kelime sayısı
-    // Burayı veri tabanından veya state'ten alman gerekiyor
-    int knownWords = 0; // Örnek değer, dinamik olarak değiştirilecek
-
-    // 🔹 Progress yüzdesi
-    final double levelProgress = knownWords / totalWords;
-
-    // 🔹 Level hesaplama: her 20 kelime bir level artıyor
-    final int userLevel = (knownWords / 20).ceil().clamp(1, 48);
-
-    // 🔹 Level name ve motto
-    final levelName = LevelData.getLevelName(userLevel);
-    final motto = LevelData.getLevelMotto(userLevel);
-
+  Widget _buildBody(
+      double levelProgress, int userLevel, String levelName, String motto) {
     if (_selectedIndex == 0) {
       return SafeArea(
         child: Padding(
@@ -122,7 +148,6 @@ class _HomePageState extends State<HomePage> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 🔹 Kullanıcı avatarı
                         CircleAvatar(
                           radius: 30,
                           backgroundColor: textWhiteColor,
@@ -134,8 +159,6 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         SizedBox(width: 16),
-
-                        // 🔹 Kullanıcı adı ve level bilgisi
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,8 +177,6 @@ class _HomePageState extends State<HomePage> {
                             ],
                           ),
                         ),
-
-                        // 🔹 Yıldızlı level container
                         Container(
                           padding:
                               EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -180,24 +201,18 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                     ),
-
                     SizedBox(height: 12),
-
-                    // 🔹 Motto: tüm satır gösterilsin, level name ile aynı hizada başlasın
                     Text(
                       motto,
                       style: bodyMedium.copyWith(color: textWhiteColor),
                       softWrap: true,
                     ),
-
                     SizedBox(height: 16),
-
-                    // 🔹 Progress bar
                     Text('Progress',
                         style: bodySmall.copyWith(color: textWhiteColor)),
                     SizedBox(height: 8),
                     LinearProgressIndicator(
-                      value: levelProgress, // 0.0 - 1.0
+                      value: levelProgress,
                       backgroundColor: Colors.white24,
                       color: Colors.orangeAccent,
                       minHeight: 10,
@@ -208,7 +223,6 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-
               SizedBox(height: 20),
 
               // ------------------ İstatistik Kartları ------------------
@@ -294,7 +308,11 @@ class _HomePageState extends State<HomePage> {
     } else if (_selectedIndex == 1) {
       return CategoriesContent();
     } else {
-      return ProfileContent();
+      return ProfileContent(
+        onNameUpdated: (newName) {
+          _updateUserName(newName);
+        },
+      );
     }
   }
 

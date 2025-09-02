@@ -1,12 +1,15 @@
 // ignore_for_file: use_build_context_synchronously
-
+import 'package:prep_words/models/word.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:prep_words/consts.dart';
 
 class ProfileContent extends StatefulWidget {
-  const ProfileContent({super.key});
+  final void Function(String)? onNameUpdated; // callback ekle
+
+  const ProfileContent({super.key, this.onNameUpdated});
 
   @override
   State<ProfileContent> createState() => _ProfileContentState();
@@ -17,6 +20,29 @@ class _ProfileContentState extends State<ProfileContent> {
   late TextEditingController _emailController;
   bool _isEditing = false;
 
+  int _knownWordCount = 0;
+  final int _totalWords = 960;
+
+  Future<void> _calculateProgress() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    int count = 0;
+
+    // Tüm prefs keylerini dolaş
+    for (var key in prefs.getKeys()) {
+      if (key.startsWith("word_status_")) {
+        final status = prefs.getString(key);
+        if (status == WordStatus.known.toString()) {
+          count++;
+        }
+      }
+    }
+
+    setState(() {
+      _knownWordCount = count;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -24,6 +50,8 @@ class _ProfileContentState extends State<ProfileContent> {
 
     _nameController = TextEditingController(text: user?.displayName ?? "");
     _emailController = TextEditingController(text: user?.email ?? "");
+
+    _calculateProgress();
   }
 
   @override
@@ -53,6 +81,8 @@ class _ProfileContentState extends State<ProfileContent> {
     final formattedDate = creationTime != null
         ? "${creationTime.day.toString().padLeft(2, '0')}.${creationTime.month.toString().padLeft(2, '0')}.${creationTime.year}"
         : "-";
+
+    double progress = (_knownWordCount / _totalWords) * 100;
 
     return Scaffold(
       appBar: AppBar(
@@ -115,20 +145,31 @@ class _ProfileContentState extends State<ProfileContent> {
             _buildProfileItem(
               icon: Icons.email,
               title: 'E-posta',
-              subtitle: _isEditing
-                  ? _buildEditableField(_emailController)
-                  : Text(
-                      _emailController.text,
-                      style: bodyMedium,
-                    ),
+              subtitle: Text(
+                _emailController.text, // artık sadece gösterim
+                style: bodyMedium,
+              ),
             ),
             const SizedBox(height: 16),
             _buildProfileItem(
               icon: Icons.bar_chart,
               title: 'Toplam İlerleme',
-              subtitle: Text(
-                '%45',
-                style: bodyMedium,
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '%${progress.toStringAsFixed(1)}',
+                    style: bodyMedium,
+                  ),
+                  const SizedBox(height: 6),
+                  LinearProgressIndicator(
+                    value: progress / 100,
+                    backgroundColor: Colors.grey[300],
+                    color: primary,
+                    minHeight: 8,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),
@@ -191,8 +232,19 @@ class _ProfileContentState extends State<ProfileContent> {
         final user = FirebaseAuth.instance.currentUser;
         if (user != null) {
           await user.updateDisplayName(_nameController.text.trim());
-          await user.verifyBeforeUpdateEmail(_emailController.text.trim());
           await user.reload();
+
+          // Ana ekrana callback ile güncel ismi gönder
+          if (widget.onNameUpdated != null) {
+            widget.onNameUpdated!(_nameController.text.trim());
+          }
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('İsim başarıyla güncellendi.'),
+              duration: Duration(seconds: 2),
+            ),
+          );
         }
 
         setState(() {
@@ -201,7 +253,7 @@ class _ProfileContentState extends State<ProfileContent> {
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: primary,
-        padding: EdgeInsets.all(14.0),
+        padding: const EdgeInsets.all(14.0),
       ),
       child: const Text(
         'Kaydet',
