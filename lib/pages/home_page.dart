@@ -262,45 +262,56 @@ class _HomePageState extends State<HomePage> {
 
               // ------------------ Quick Actions ------------------
               Text('Quick Actions', style: headingMedium),
-              SizedBox(height: 8),
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                physics: NeverScrollableScrollPhysics(),
+              SizedBox(height: 12),
+
+// Kartları sarmalayan Wrap
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                alignment: WrapAlignment.center,
                 children: [
-                  _levelCard('Başlangıç', '6 Ünite', Icons.school, Colors.green,
-                      () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => LevelsPage(
-                            level: 1, levelName: 'Başlangıç', unitCount: 6),
-                      ),
-                    );
-                  }),
-                  _levelCard('Orta', '22 Ünite', Icons.school, Colors.orange,
-                      () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => LevelsPage(
-                            level: 2, levelName: 'Orta', unitCount: 22),
-                      ),
-                    );
-                  }),
-                  _levelCard('İleri', '20 Ünite', Icons.school, Colors.red, () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => LevelsPage(
-                            level: 3, levelName: 'İleri', unitCount: 20),
-                      ),
-                    );
-                  }),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.42,
+                    child: _levelCard(
+                        'Başlangıç', '6 Ünite', Icons.school, Colors.green, () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => LevelsPage(
+                              level: 1, levelName: 'Başlangıç', unitCount: 6),
+                        ),
+                      );
+                    }),
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.42,
+                    child: _levelCard(
+                        'Orta', '22 Ünite', Icons.school, Colors.orange, () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => LevelsPage(
+                              level: 2, levelName: 'Orta', unitCount: 22),
+                        ),
+                      );
+                    }),
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.42,
+                    child: _levelCard(
+                        'İleri', '20 Ünite', Icons.school, Colors.red, () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => LevelsPage(
+                              level: 3, levelName: 'İleri', unitCount: 20),
+                        ),
+                      );
+                    }),
+                  ),
                 ],
               ),
+              SizedBox(height: 20),
             ],
           ),
         ),
@@ -321,10 +332,22 @@ class _HomePageState extends State<HomePage> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        width: 140, // sabit genişlik, ekran dışına taşmasın
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
+          gradient: LinearGradient(
+            colors: [color.withValues(alpha: 0.2), Colors.white],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withValues(alpha: 0.15),
+              blurRadius: 8,
+              offset: Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
