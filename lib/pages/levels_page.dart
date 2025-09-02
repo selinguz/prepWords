@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:prep_words/components/custom_appbar.dart';
 import 'package:prep_words/consts.dart';
+import 'package:prep_words/models/word.dart';
 import 'package:prep_words/pages/words_page.dart';
+import 'package:prep_words/services/firebase_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LevelsPage extends StatefulWidget {
@@ -16,7 +18,6 @@ class LevelsPage extends StatefulWidget {
     required this.unitCount,
   });
 
-  /// 🔹 Level’e göre global unit başlangıcı
   int get startUnit {
     switch (level) {
       case 1:
@@ -36,6 +37,7 @@ class LevelsPage extends StatefulWidget {
 
 class _LevelsPageState extends State<LevelsPage> {
   late List<bool> unlockedUnits;
+  final FirebaseService _firebaseService = FirebaseService();
 
   @override
   void initState() {
@@ -63,6 +65,64 @@ class _LevelsPageState extends State<LevelsPage> {
       await prefs.setBool('unit_${globalNextUnit}_unlocked', true);
       setState(() {});
     }
+  }
+
+  void _showUnitPreview(int globalUnit) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<WordModel> words = await _firebaseService.fetchWordsByUnit(globalUnit);
+
+    List<Widget> wordWidgets = words.map((word) {
+      String status =
+          prefs.getString("word_status_${word.englishWord}") ?? "unknown";
+
+      Icon icon;
+      switch (status) {
+        case "WordStatus.known":
+          icon = Icon(Icons.check, color: Colors.green);
+          break;
+        case "WordStatus.unknown":
+          icon = Icon(Icons.close, color: Colors.red);
+          break;
+        case "WordStatus.unsure":
+          icon = Icon(Icons.remove, color: Colors.amber);
+          break;
+        default:
+          icon = Icon(Icons.help_outline, color: Colors.grey);
+      }
+
+      return ListTile(
+        title: Text(word.englishWord, style: bodyMedium),
+        trailing: icon,
+      );
+    }).toList();
+
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.6,
+          padding: EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Text(
+                'Ünite $globalUnit Kelimeleri',
+                style: headingMedium,
+              ),
+              SizedBox(height: 16),
+              Expanded(
+                child: ListView(
+                  children: wordWidgets,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -150,19 +210,45 @@ class _LevelsPageState extends State<LevelsPage> {
                           ],
                         ),
                       ),
-                      // Sağ taraftaki ok ikonu
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: isUnlocked ? primary : Colors.grey,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          Icons.arrow_forward_ios,
-                          color: textWhiteColor,
-                          size: 18,
-                        ),
+                      Row(
+                        children: [
+                          // 🔹 Yeni önizleme ikonu
+                          if (isUnlocked)
+                            GestureDetector(
+                              onTap: () {
+                                _showUnitPreview(globalUnit);
+                              },
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: adjsFront.withValues(alpha: 0.6),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.visibility,
+                                  color: textWhiteColor,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+
+                          SizedBox(width: 8),
+                          // Ok ikonu (eski)
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: isUnlocked ? primary : Colors.grey,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.arrow_forward_ios,
+                              color: textWhiteColor,
+                              size: 18,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

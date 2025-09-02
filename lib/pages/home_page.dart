@@ -170,7 +170,7 @@ class _HomePageState extends State<HomePage> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                "Level: $levelName",
+                                levelName,
                                 style:
                                     bodyMedium.copyWith(color: textWhiteColor),
                               ),
