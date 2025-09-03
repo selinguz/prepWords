@@ -75,8 +75,8 @@ class _WordsPageState extends State<WordsPage> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content:
-              Text('Tebrikler! Bu ünitenin tüm kelimelerini tamamladınız.')),
+          content: Text(
+              'Congratulations! You have studied all the words in this unit.')),
     );
 
     int nextUnit = widget.unit + 1;
@@ -105,7 +105,7 @@ class _WordsPageState extends State<WordsPage> {
         _onUnitCompleted();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Tüm kelimeleri tamamladınız!')),
+          SnackBar(content: Text('You have studied all the words.')),
         );
       }
     }
@@ -150,7 +150,7 @@ class _WordsPageState extends State<WordsPage> {
   Widget build(BuildContext context) {
     if (isLoading) {
       return Scaffold(
-        appBar: CustomAppBar(title: 'Ünite ${widget.unit}'),
+        appBar: CustomAppBar(title: 'Unit ${widget.unit}'),
         backgroundColor: backgrnd,
         body: Center(child: CircularProgressIndicator()),
       );
@@ -160,7 +160,7 @@ class _WordsPageState extends State<WordsPage> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Ünite ${widget.unit}',
+        title: 'Unit ${widget.unit}',
       ),
       backgroundColor: backgrnd,
       body: Column(
@@ -222,7 +222,7 @@ class _WordsPageState extends State<WordsPage> {
                           words[currentPage].status, WordStatus.known),
                     ),
                     onPressed: () => _markWord(WordStatus.known),
-                    child: Text('Biliyorum',
+                    child: Text('I know',
                         style: bodyMedium.copyWith(color: Colors.white)),
                   ),
                   ElevatedButton(
@@ -231,7 +231,7 @@ class _WordsPageState extends State<WordsPage> {
                           words[currentPage].status, WordStatus.unsure),
                     ),
                     onPressed: () => _markWord(WordStatus.unsure),
-                    child: Text('Emin Değilim',
+                    child: Text('Not sure',
                         style: bodyMedium.copyWith(color: Colors.white)),
                   ),
                   ElevatedButton(
@@ -240,7 +240,7 @@ class _WordsPageState extends State<WordsPage> {
                           words[currentPage].status, WordStatus.unknown),
                     ),
                     onPressed: () => _markWord(WordStatus.unknown),
-                    child: Text('Bilmiyorum',
+                    child: Text('I don\'t know',
                         style: bodyMedium.copyWith(color: Colors.white)),
                   ),
                 ],

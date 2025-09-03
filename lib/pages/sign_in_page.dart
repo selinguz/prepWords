@@ -100,10 +100,10 @@ class SignInPageState extends State<SignInPage> {
                               // --- Email
                               CustomTextField(
                                 controller: _emailController,
-                                hintText: 'Email',
+                                hintText: 'E-mail',
                                 validator: (value) {
                                   if (value?.isEmpty ?? true) {
-                                    return 'Email gerekli';
+                                    return 'E-mail is required';
                                   }
                                   return null;
                                 },
@@ -112,7 +112,7 @@ class SignInPageState extends State<SignInPage> {
                               // --- Şifre
                               CustomTextField(
                                 controller: _passwordController,
-                                hintText: 'Şifre',
+                                hintText: 'Password',
                                 obscureText: !_isPasswordVisible,
                                 suffixIcon: IconButton(
                                   icon: Icon(_isPasswordVisible
@@ -126,10 +126,10 @@ class SignInPageState extends State<SignInPage> {
                                 ),
                                 validator: (value) {
                                   if (value?.isEmpty ?? true) {
-                                    return 'Şifre gerekli';
+                                    return 'Password is required';
                                   }
                                   if (value!.length < 6) {
-                                    return 'Şifre en az 6 karakter olmalı';
+                                    return 'The password must be at least 6 characters long.';
                                   }
                                   return null;
                                 },
@@ -150,7 +150,7 @@ class SignInPageState extends State<SignInPage> {
                                             });
                                           },
                                         ),
-                                        Text("Beni hatırla",
+                                        Text("Remember me",
                                             style: greyButtonText),
                                       ],
                                     ),
@@ -160,7 +160,7 @@ class SignInPageState extends State<SignInPage> {
                                       // şifre sıfırlama dialog'un
                                       // ...
                                     },
-                                    child: Text('Şifremi Unuttum',
+                                    child: Text('Forgot your password?',
                                         style: greyButtonText.copyWith(
                                             color: warnOrange)),
                                   ),
@@ -190,13 +190,13 @@ class SignInPageState extends State<SignInPage> {
                                         String errorMessage;
                                         if (e.code == 'user-not-found') {
                                           errorMessage =
-                                              'Böyle bir kullanıcı bulunamadı.';
+                                              'No such user was found.';
                                         } else if (e.code == 'wrong-password') {
                                           errorMessage =
-                                              'Şifre hatalı. Lütfen tekrar deneyin.';
+                                              'The password is incorrect. Please try again.';
                                         } else {
                                           errorMessage =
-                                              'Bir hata oluştu: ${e.message}';
+                                              'An error occured: ${e.message}';
                                         }
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(SnackBar(
@@ -214,7 +214,7 @@ class SignInPageState extends State<SignInPage> {
                                     elevation: 8,
                                   ),
                                   child:
-                                      Text('Giriş Yap', style: whiteButtonText),
+                                      Text('Sign In', style: whiteButtonText),
                                 ),
                               ),
 
@@ -226,7 +226,7 @@ class SignInPageState extends State<SignInPage> {
                                 onPressed: () => Navigator.pushReplacementNamed(
                                     context, '/signup'),
                                 child: Text(
-                                  'Hesabınız yok mu? Kaydolun',
+                                  'Don\'t have an account? Sign up',
                                   style: headingMedium.copyWith(
                                     color: warnOrange,
                                     fontWeight: FontWeight.bold,

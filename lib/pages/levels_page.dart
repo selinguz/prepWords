@@ -7,7 +7,7 @@ import 'package:prep_words/services/firebase_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LevelsPage extends StatefulWidget {
-  final int level; // 1: Başlangıç, 2: Orta, 3: İleri
+  final int level;
   final String levelName;
   final int unitCount;
 
@@ -190,7 +190,7 @@ class _LevelsPageState extends State<LevelsPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Ünite $globalUnit',
+                              'Unit $globalUnit',
                               style: headingMedium.copyWith(
                                 color: isUnlocked
                                     ? textGreyColor.withAlpha(179)
@@ -200,7 +200,7 @@ class _LevelsPageState extends State<LevelsPage> {
                             ),
                             SizedBox(height: 4),
                             Text(
-                              '20 Kelime',
+                              '20 Words',
                               style: bodySmall.copyWith(
                                 color: isUnlocked
                                     ? textGreyColor.withAlpha(135)

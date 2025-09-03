@@ -11,7 +11,7 @@ class FirebaseService {
       final snapshot = await _firestore.collection(collectionName).get();
       return snapshot.docs.map((doc) => WordModel.fromMap(doc.data())).toList();
     } catch (e) {
-      throw Exception('Kelime listesi alınırken hata oluştu: $e');
+      throw Exception('An error occurred while retrieving the word list: $e');
     }
   }
 
@@ -26,7 +26,7 @@ class FirebaseService {
           .map((doc) => WordModel.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      debugPrint('Hata detayı: $e');
+      debugPrint('Error Detail: $e');
       rethrow;
     }
   }
@@ -45,7 +45,7 @@ class FirebaseService {
 
       return wordTypes.toList()..sort();
     } catch (e) {
-      debugPrint('Hata: $e');
+      debugPrint('Error: $e');
       rethrow;
     }
   }
@@ -61,7 +61,7 @@ class FirebaseService {
           .map((doc) => WordModel.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      debugPrint('Hata: $e');
+      debugPrint('Error: $e');
       rethrow;
     }
   }

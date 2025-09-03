@@ -52,7 +52,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               hintText: 'İsim',
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Lütfen isminizi girin';
+                                  return 'Please enter your name';
                                 }
                                 return null;
                               },
@@ -60,15 +60,15 @@ class _SignUpPageState extends State<SignUpPage> {
                             SizedBox(height: 16),
                             CustomTextField(
                               controller: _emailController,
-                              hintText: 'Email Adresi',
+                              hintText: 'E-mail Address',
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Lütfen email adresinizi girin';
+                                  return 'Please enter your email address';
                                 }
                                 final emailRegex =
                                     RegExp(r'^[^@]+@[^@]+\.[^@]+$');
                                 if (!emailRegex.hasMatch(value)) {
-                                  return 'Lütfen geçerli bir email adresi girin';
+                                  return 'Please enter a valid email address';
                                 }
                                 return null;
                               },
@@ -76,7 +76,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             SizedBox(height: 16),
                             CustomTextField(
                               controller: _passwordController,
-                              hintText: 'Şifre',
+                              hintText: 'Password',
                               obscureText: !_isPasswordVisible,
                               suffixIcon: IconButton(
                                 icon: Icon(_isPasswordVisible
@@ -90,7 +90,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Lütfen şifrenizi girin';
+                                  return 'Please enter your password';
                                 }
                                 return null;
                               },
@@ -116,13 +116,13 @@ class _SignUpPageState extends State<SignUpPage> {
                                     String errorMessage;
                                     if (e.code == 'email-already-in-use') {
                                       errorMessage =
-                                          'Bu email zaten kullanılıyor.';
+                                          'This email address is already in use.';
                                     } else if (e.code == 'weak-password') {
                                       errorMessage =
-                                          'Şifre çok zayıf. Lütfen daha güçlü bir şifre deneyin.';
+                                          'The password is too weak. Please try a stronger password.';
                                     } else {
                                       errorMessage =
-                                          'Bir hata oluştu: ${e.message}';
+                                          'An error occured: ${e.message}';
                                     }
                                     ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(content: Text(errorMessage)));
@@ -137,7 +137,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                     const EdgeInsets.symmetric(vertical: 14),
                                 elevation: 8,
                               ),
-                              child: Text('Kayıt Ol', style: whiteButtonText),
+                              child: Text('Sign Up', style: whiteButtonText),
                             ),
                             Spacer(),
                           ],

@@ -19,7 +19,7 @@ class _CategoriesContentState extends State<CategoriesContent> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: 'Kategoriler'),
+      appBar: CustomAppBar(title: 'Categories'),
       body: Column(
         children: [
           Padding(
@@ -234,17 +234,17 @@ class _CategoriesContentState extends State<CategoriesContent> {
             Text(word.englishWord,
                 style: headingLarge.copyWith(color: primary)),
             Divider(height: 20),
-            _buildDetailRow('Anlam:', word.turkishMeaning),
-            _buildDetailRow('Tür:', word.wordType),
-            _buildDetailRow('Örnek:', word.exampleSentence, isItalic: true),
-            _buildDetailRow('Çeviri:', word.exampleTranslation),
+            _buildDetailRow('Meaning:', word.turkishMeaning),
+            _buildDetailRow('Type:', word.wordType),
+            _buildDetailRow('Example:', word.exampleSentence, isItalic: true),
+            _buildDetailRow('Translation:', word.exampleTranslation),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child:
-                Text('Kapat', style: greyButtonText.copyWith(color: primary)),
+                Text('Close', style: greyButtonText.copyWith(color: primary)),
           ),
         ],
       ),

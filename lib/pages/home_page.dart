@@ -47,7 +47,7 @@ class _HomePageState extends State<HomePage> {
     if (user != null) {
       user.reload().then((_) {
         setState(() {
-          _userName = user.displayName ?? 'Kullanıcı';
+          _userName = user.displayName ?? 'User';
         });
       });
     }
@@ -370,11 +370,11 @@ class _HomePageState extends State<HomePage> {
                     ? 1
                     : title == 'Intermediate'
                         ? 2
-                        : 3, // kaç ikon olacağını seviyeye göre belirliyoruz
+                        : 3, 
                 (index) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 2),
                   child: Icon(
-                    icon, // senin yukarıda verdiğin icon parametresi
+                    icon,
                     color: color,
                     size: 30,
                   ),

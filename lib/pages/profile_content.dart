@@ -93,7 +93,7 @@ class _ProfileContentState extends State<ProfileContent> {
         iconTheme: IconThemeData(color: textGreyColor),
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         title: Text(
-          'Profil',
+          'Profile',
           style: headingLarge.copyWith(fontSize: 30),
         ),
         actions: [
@@ -134,7 +134,7 @@ class _ProfileContentState extends State<ProfileContent> {
               const SizedBox(height: 16),
               _buildProfileItem(
                 icon: Icons.person,
-                title: 'İsim Soyisim',
+                title: 'Name',
                 subtitle: _isEditing
                     ? _buildEditableField(_nameController)
                     : Text(
@@ -145,7 +145,7 @@ class _ProfileContentState extends State<ProfileContent> {
               const SizedBox(height: 16),
               _buildProfileItem(
                 icon: Icons.email,
-                title: 'E-posta',
+                title: 'E-mail',
                 subtitle: Text(
                   _emailController.text, // artık sadece gösterim
                   style: bodyMedium,
@@ -154,7 +154,7 @@ class _ProfileContentState extends State<ProfileContent> {
               const SizedBox(height: 16),
               _buildProfileItem(
                 icon: Icons.bar_chart,
-                title: 'Toplam İlerleme',
+                title: 'Total Progress',
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -176,7 +176,7 @@ class _ProfileContentState extends State<ProfileContent> {
               const SizedBox(height: 16),
               _buildProfileItem(
                 icon: Icons.calendar_today,
-                title: 'Katılım Tarihi',
+                title: 'Participation Date',
                 subtitle: Text(
                   formattedDate,
                   style: const TextStyle(fontSize: 16),
@@ -195,7 +195,7 @@ class _ProfileContentState extends State<ProfileContent> {
                         Navigator.pushReplacementNamed(context, '/signin');
                       },
                       child: const Text(
-                        "Çıkış Yap",
+                        "Sign Out",
                         style: whiteButtonText,
                       ),
                     )
@@ -223,7 +223,7 @@ class _ProfileContentState extends State<ProfileContent> {
       controller: controller,
       decoration: InputDecoration(
         border: OutlineInputBorder(),
-        hintText: 'Düzenle',
+        hintText: 'Edit',
       ),
     );
   }
@@ -243,7 +243,7 @@ class _ProfileContentState extends State<ProfileContent> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('İsim başarıyla güncellendi.'),
+              content: Text('The name has been successfully updated.'),
               duration: Duration(seconds: 2),
             ),
           );

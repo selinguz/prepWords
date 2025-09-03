@@ -28,7 +28,7 @@ class WordTypeDetailPage extends StatelessWidget {
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text('Hata: ${snapshot.error}'));
+            return Center(child: Text('Error: ${snapshot.error}'));
           }
 
           final words = snapshot.data ?? [];
@@ -49,7 +49,7 @@ class WordTypeDetailPage extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(16),
                 child: Text(
-                  'Bu türde ${words.length} kelime bulunuyor',
+                  'There are ${words.length} words in this type.',
                   style: bodyMedium.copyWith(color: textGreyColor),
                 ),
               ),

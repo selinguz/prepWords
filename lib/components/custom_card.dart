@@ -116,7 +116,7 @@ class CustomFlipCardState extends State<CustomFlipCard> {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Kartı çevirmek için dokun',
+                  'Tap to turn the card.',
                   style: bodySmall.copyWith(
                     color: textWhiteColor.withAlpha(200),
                     letterSpacing: 0.5,
@@ -156,7 +156,7 @@ class CustomFlipCardState extends State<CustomFlipCard> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Örnek Cümle',
+                  'Example',
                   style: headingSmall.copyWith(
                     color: textGreyColor,
                     fontWeight: FontWeight.bold,
@@ -201,7 +201,7 @@ class CustomFlipCardState extends State<CustomFlipCard> {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Kartı çevirmek için dokun',
+                  'Tap to turn the card',
                   style: bodySmall.copyWith(
                     color: textGreyColor.withAlpha(150),
                     letterSpacing: 0.5,
