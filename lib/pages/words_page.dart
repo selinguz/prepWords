@@ -46,10 +46,10 @@ class _WordsPageState extends State<WordsPage> {
   Future<WordStatus> _loadWordStatus(String word) async {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getString('word_status_$word');
-    if (saved == null) return WordStatus.unknown;
+    if (saved == null) return WordStatus.none; // Başlangıçta renkli
     return WordStatus.values.firstWhere(
       (s) => s.toString() == saved,
-      orElse: () => WordStatus.unknown,
+      orElse: () => WordStatus.none,
     );
   }
 
@@ -57,7 +57,7 @@ class _WordsPageState extends State<WordsPage> {
   Future<void> _loadWords() async {
     final fetchedWords = await firebaseService.fetchWordsByUnit(widget.unit);
 
-    // Her kelimenin durumu SharedPreferences'ta varsa onu al, yoksa unknown ata
+    // Her kelimenin durumu SharedPreferences'ta varsa onu al, yoksa none ata
     for (var w in fetchedWords) {
       w.status = await _loadWordStatus(w.englishWord);
     }
@@ -86,8 +86,8 @@ class _WordsPageState extends State<WordsPage> {
   /// 🔹 Sonraki kelimeye geç (kaydırma veya buton)
   void _nextPage({bool markUnknownIfEmpty = false}) {
     if (markUnknownIfEmpty) {
-      if (words[currentPage].status == WordStatus.unknown) {
-        _saveWordStatus(words[currentPage].englishWord, WordStatus.unknown);
+      if (words[currentPage].status == WordStatus.none) {
+        _saveWordStatus(words[currentPage].englishWord, WordStatus.none);
       }
     }
 
@@ -120,6 +120,32 @@ class _WordsPageState extends State<WordsPage> {
     _nextPage();
   }
 
+  /// 🔹 Buton renklerini belirle
+  Color getWordButtonColor(WordStatus status, WordStatus buttonType) {
+    if (status == WordStatus.none) {
+      // Başlangıçta tüm butonlar renkli
+      switch (buttonType) {
+        case WordStatus.known:
+          return Colors.green;
+        case WordStatus.unsure:
+          return Colors.orange;
+        case WordStatus.unknown:
+          return Colors.red;
+        default:
+          return Colors.blueAccent;
+      }
+    } else {
+      // İşaretlenmiş durumlar
+      return status == buttonType
+          ? (buttonType == WordStatus.known
+              ? Colors.green
+              : buttonType == WordStatus.unsure
+                  ? Colors.orange
+                  : Colors.red)
+          : Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -146,7 +172,6 @@ class _WordsPageState extends State<WordsPage> {
               itemCount: words.length,
               physics: ClampingScrollPhysics(),
               onPageChanged: (index) {
-                // Kullanıcı kaydırma yaparsa önceki kelimeyi kaydet
                 if (index > currentPage) {
                   _nextPage(markUnknownIfEmpty: true);
                 } else {
@@ -187,46 +212,43 @@ class _WordsPageState extends State<WordsPage> {
           Expanded(
             flex: 20,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          words[currentPage].status == WordStatus.known
-                              ? Colors.green
-                              : Colors.grey,
+                      backgroundColor: getWordButtonColor(
+                          words[currentPage].status, WordStatus.known),
                     ),
                     onPressed: () => _markWord(WordStatus.known),
                     child: Text('Biliyorum',
-                        style: TextStyle(color: textWhiteColor)),
+                        style: bodyMedium.copyWith(color: Colors.white)),
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          words[currentPage].status == WordStatus.unsure
-                              ? Colors.orange
-                              : Colors.grey,
+                      backgroundColor: getWordButtonColor(
+                          words[currentPage].status, WordStatus.unsure),
                     ),
                     onPressed: () => _markWord(WordStatus.unsure),
                     child: Text('Emin Değilim',
-                        style: TextStyle(color: textWhiteColor)),
+                        style: bodyMedium.copyWith(color: Colors.white)),
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          words[currentPage].status == WordStatus.unknown
-                              ? Colors.red
-                              : Colors.grey,
+                      backgroundColor: getWordButtonColor(
+                          words[currentPage].status, WordStatus.unknown),
                     ),
                     onPressed: () => _markWord(WordStatus.unknown),
                     child: Text('Bilmiyorum',
-                        style: TextStyle(color: textWhiteColor)),
+                        style: bodyMedium.copyWith(color: Colors.white)),
                   ),
                 ],
               ),
             ),
+          ),
+          SizedBox(
+            height: MediaQuery.sizeOf(context).height * 0.03,
           ),
         ],
       ),

@@ -1,4 +1,4 @@
-enum WordStatus { unknown, unsure, known }
+enum WordStatus { unknown, unsure, known, none }
 
 class WordModel {
   final String englishWord;

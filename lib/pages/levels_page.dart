@@ -109,7 +109,7 @@ class _LevelsPageState extends State<LevelsPage> {
           child: Column(
             children: [
               Text(
-                'Ünite $globalUnit Kelimeleri',
+                'Unit $globalUnit Words',
                 style: headingMedium,
               ),
               SizedBox(height: 16),

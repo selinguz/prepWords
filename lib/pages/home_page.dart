@@ -5,6 +5,7 @@ import 'package:prep_words/data/level_data.dart';
 import 'package:prep_words/pages/levels_page.dart';
 import 'package:prep_words/pages/categories_content.dart';
 import 'package:prep_words/pages/profile_content.dart';
+import 'package:prep_words/pages/statistics_content.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:prep_words/models/word.dart'; // WordStatus için
 
@@ -109,15 +110,19 @@ class _HomePageState extends State<HomePage> {
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_rounded),
-              label: 'Ana Sayfa',
+              label: 'Home',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.category_rounded),
-              label: 'Kategoriler',
+              label: 'Categories',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.stacked_bar_chart),
+              label: 'Statistics',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_rounded),
-              label: 'Profil',
+              label: 'Profile',
             ),
           ],
         ),
@@ -223,10 +228,8 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-              SizedBox(height: 20),
 
-              // ------------------ İstatistik Kartları ------------------
-              Row(
+              /* Row(
                 children: [
                   Expanded(
                     child: Container(
@@ -250,61 +253,66 @@ class _HomePageState extends State<HomePage> {
                           Text('Current Streak', style: bodySmall),
                           Text('1', style: headingMedium),
                           Text('Keep it up! 👍',
-                              style: bodySmall.copyWith(color: secondaryBlue))
+                              style: bodySmall.copyWith(color: secondaryBlue)) 
                         ],
                       ),
                     ),
                   ),
                 ],
               ),
-
-              SizedBox(height: 20),
+ */
 
               // ------------------ Quick Actions ------------------
-              Text('Quick Actions', style: headingMedium),
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Text('Quick Actions', style: headingMedium),
+              ),
               SizedBox(height: 12),
 
 // Kartları sarmalayan Wrap
               Wrap(
-                spacing: 12,
+                spacing: 22,
                 runSpacing: 12,
-                alignment: WrapAlignment.center,
+                alignment: WrapAlignment.start,
                 children: [
                   SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.42,
+                    width: MediaQuery.of(context).size.width,
                     child: _levelCard(
-                        'Başlangıç', '6 Ünite', Icons.school, Colors.green, () {
+                        'Beginner', '6 Units', Icons.star, Colors.green, () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => LevelsPage(
-                              level: 1, levelName: 'Başlangıç', unitCount: 6),
+                              level: 1, levelName: 'Beginner', unitCount: 6),
                         ),
                       );
                     }),
                   ),
                   SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.42,
+                    width: MediaQuery.of(context).size.width,
                     child: _levelCard(
-                        'Orta', '22 Ünite', Icons.school, Colors.orange, () {
+                        'Intermediate', '22 Units', Icons.star, Colors.orange,
+                        () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => LevelsPage(
-                              level: 2, levelName: 'Orta', unitCount: 22),
+                              level: 2,
+                              levelName: 'Intermediate',
+                              unitCount: 22),
                         ),
                       );
                     }),
                   ),
                   SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.42,
+                    width: MediaQuery.of(context).size.width,
                     child: _levelCard(
-                        'İleri', '20 Ünite', Icons.school, Colors.red, () {
+                        'Advanced', '20 Units', Icons.star, Colors.red, () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => LevelsPage(
-                              level: 3, levelName: 'İleri', unitCount: 20),
+                              level: 3, levelName: 'Advanced', unitCount: 20),
                         ),
                       );
                     }),
@@ -318,6 +326,8 @@ class _HomePageState extends State<HomePage> {
       );
     } else if (_selectedIndex == 1) {
       return CategoriesContent();
+    } else if (_selectedIndex == 2) {
+      return StatisticsContent();
     } else {
       return ProfileContent(
         onNameUpdated: (newName) {
@@ -332,7 +342,8 @@ class _HomePageState extends State<HomePage> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 140, // sabit genişlik, ekran dışına taşmasın
+        width: MediaQuery.sizeOf(context)
+            .width, // sabit genişlik, ekran dışına taşmasın
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -352,9 +363,26 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: color, size: 30),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: List.generate(
+                title == 'Beginner'
+                    ? 1
+                    : title == 'Intermediate'
+                        ? 2
+                        : 3, // kaç ikon olacağını seviyeye göre belirliyoruz
+                (index) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: Icon(
+                    icon, // senin yukarıda verdiğin icon parametresi
+                    color: color,
+                    size: 30,
+                  ),
+                ),
+              ),
+            ),
             SizedBox(height: 12),
-            Text(title, style: headingMedium),
+            Text(title, style: headingMedium.copyWith(fontSize: 18)),
             SizedBox(height: 4),
             Text(subtitle, style: bodySmall),
           ],

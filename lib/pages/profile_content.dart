@@ -115,90 +115,92 @@ class _ProfileContentState extends State<ProfileContent> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            CircleAvatar(
-              radius: 50,
-              backgroundColor: primary,
-              child: Text(
-                getInitials(displayName),
-                style: TextStyle(
-                  fontSize: 32,
-                  color: textWhiteColor,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              CircleAvatar(
+                radius: 50,
+                backgroundColor: primary,
+                child: Text(
+                  getInitials(displayName),
+                  style: TextStyle(
+                    fontSize: 32,
+                    color: textWhiteColor,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            _buildProfileItem(
-              icon: Icons.person,
-              title: 'İsim Soyisim',
-              subtitle: _isEditing
-                  ? _buildEditableField(_nameController)
-                  : Text(
-                      _nameController.text,
+              const SizedBox(height: 16),
+              _buildProfileItem(
+                icon: Icons.person,
+                title: 'İsim Soyisim',
+                subtitle: _isEditing
+                    ? _buildEditableField(_nameController)
+                    : Text(
+                        _nameController.text,
+                        style: bodyMedium,
+                      ), // Wrap text in a Text widget
+              ),
+              const SizedBox(height: 16),
+              _buildProfileItem(
+                icon: Icons.email,
+                title: 'E-posta',
+                subtitle: Text(
+                  _emailController.text, // artık sadece gösterim
+                  style: bodyMedium,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildProfileItem(
+                icon: Icons.bar_chart,
+                title: 'Toplam İlerleme',
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '%${progress.toStringAsFixed(1)}',
                       style: bodyMedium,
-                    ), // Wrap text in a Text widget
-            ),
-            const SizedBox(height: 16),
-            _buildProfileItem(
-              icon: Icons.email,
-              title: 'E-posta',
-              subtitle: Text(
-                _emailController.text, // artık sadece gösterim
-                style: bodyMedium,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildProfileItem(
-              icon: Icons.bar_chart,
-              title: 'Toplam İlerleme',
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '%${progress.toStringAsFixed(1)}',
-                    style: bodyMedium,
-                  ),
-                  const SizedBox(height: 6),
-                  LinearProgressIndicator(
-                    value: progress / 100,
-                    backgroundColor: Colors.grey[300],
-                    color: primary,
-                    minHeight: 8,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildProfileItem(
-              icon: Icons.calendar_today,
-              title: 'Katılım Tarihi',
-              subtitle: Text(
-                formattedDate,
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-            const SizedBox(height: 32),
-            (_isEditing)
-                ? _buildSaveButton()
-                : ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primary,
-                      padding: EdgeInsets.all(14.0),
                     ),
-                    onPressed: () async {
-                      await FirebaseAuth.instance.signOut();
-                      Navigator.pushReplacementNamed(context, '/signin');
-                    },
-                    child: const Text(
-                      "Çıkış Yap",
-                      style: whiteButtonText,
+                    const SizedBox(height: 6),
+                    LinearProgressIndicator(
+                      value: progress / 100,
+                      backgroundColor: Colors.grey[300],
+                      color: primary,
+                      minHeight: 8,
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                  )
-          ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildProfileItem(
+                icon: Icons.calendar_today,
+                title: 'Katılım Tarihi',
+                subtitle: Text(
+                  formattedDate,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+              const SizedBox(height: 32),
+              (_isEditing)
+                  ? _buildSaveButton()
+                  : ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primary,
+                        padding: EdgeInsets.all(14.0),
+                      ),
+                      onPressed: () async {
+                        await FirebaseAuth.instance.signOut();
+                        Navigator.pushReplacementNamed(context, '/signin');
+                      },
+                      child: const Text(
+                        "Çıkış Yap",
+                        style: whiteButtonText,
+                      ),
+                    )
+            ],
+          ),
         ),
       ),
     );
