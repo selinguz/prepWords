@@ -36,38 +36,70 @@ class _StatisticsContentState extends State<StatisticsContent> {
 
   Future<void> _loadStatistics() async {
     final prefs = await SharedPreferences.getInstance();
-    final keys = prefs.getKeys();
 
     int known = 0;
     int unknown = 0;
     int unsure = 0;
     int unmarked = 0;
 
-    List<WordModel> allWords = [];
+    // Kelime türleri
+    int adj = 0;
+    int adv = 0;
+    int noun = 0;
+    int verb = 0;
 
-    // Tüm üniteleri alıp WordModel listesini oluştur
-    // Burada FirebaseService.fetchWordsByUnit kullanılabilir
-    // Örnek: toplam 48 ünite
+    // 🔹 Firebase’den tüm kelimeleri al
+    List<WordModel> allWords = [];
     for (int i = 1; i <= 48; i++) {
       final words = await firebaseService.fetchWordsByUnit(i);
       allWords.addAll(words);
     }
 
+    // 🔹 Preferences'teki durumları kontrol et
     for (var key in prefs.getKeys()) {
       if (key.startsWith('word_status_')) {
+        final word = key.replaceFirst('word_status_', '');
         final statusStr = prefs.getString(key);
+
+        // Bu kelime allWords içinde var mı?
+        final wordModel = allWords.firstWhere(
+          (w) => w.englishWord == word,
+          orElse: () => WordModel(
+            englishWord: word,
+            turkishMeaning: '',
+            wordType: '',
+            exampleSentence: '',
+            exampleTranslation: '',
+            unit: 0,
+          ),
+        );
+
         if (statusStr == WordStatus.known.toString()) {
           known++;
-        } else if (statusStr == WordStatus.unsure.toString()) {
-          unsure++;
+
+          // Kelime tipine göre sayaç
+          final type = wordModel.wordType.toLowerCase().trim();
+          if (type.startsWith('adjective')) {
+            adj++;
+          } else if (type.startsWith('adverb')) {
+            adv++;
+          } else if (type.startsWith('noun')) {
+            noun++;
+          } else if (type.startsWith('verb')) {
+            verb++;
+          }
         } else if (statusStr == WordStatus.unknown.toString()) {
           unknown++;
+        } else if (statusStr == WordStatus.unsure.toString()) {
+          unsure++;
         }
       }
     }
-    int totalWords = 960;
 
+    int totalWords = 960;
     unmarked = totalWords - (known + unsure + unknown);
+
+    // Kullanıcıya göre gün sayısı
     final user = FirebaseAuth.instance.currentUser;
     final creationTime = user?.metadata.creationTime ?? DateTime.now();
     final now = DateTime.now();
@@ -75,6 +107,7 @@ class _StatisticsContentState extends State<StatisticsContent> {
 
     dailyAverage = known / totalDays;
 
+    // State güncelle
     setState(() {
       wordStats = {
         'known': known,
@@ -82,12 +115,16 @@ class _StatisticsContentState extends State<StatisticsContent> {
         'unsure': unsure,
         'unmarked': unmarked,
       };
+      adjectives = adj;
+      adverbs = adv;
+      nouns = noun;
+      verbs = verb;
+
       isLoading = false;
-      adjectives = adjectives;
-      adverbs = adverbs;
-      nouns = nouns;
-      verbs = verbs;
     });
+
+    debugPrint(
+        "Word types: adj=$adjectives, adv=$adverbs, noun=$nouns, verb=$verbs");
   }
 
   Widget _buildStatCard(
@@ -255,90 +292,88 @@ class _StatisticsContentState extends State<StatisticsContent> {
     if (isLoading) {
       return Center(child: CircularProgressIndicator());
     }
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          toolbarHeight: kToolbarHeight * 1.2,
-          backgroundColor: primary,
-          elevation: 0,
-          centerTitle: true,
-          iconTheme: IconThemeData(color: textGreyColor),
-          systemOverlayStyle: SystemUiOverlayStyle.dark,
-          title: Text(
-            'Statistics',
-            style: headingLarge.copyWith(fontSize: 30),
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: kToolbarHeight * 1.2,
+        backgroundColor: primary,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: IconThemeData(color: textGreyColor),
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        title: Text(
+          'Statistics',
+          style: headingLarge.copyWith(fontSize: 30),
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Total Words Statistics", style: headingMedium),
-              const SizedBox(height: 12),
-              // 1. Genel Bilgiler
-              GridView.count(
-                mainAxisSpacing: 2.0,
-                crossAxisSpacing: 18.0,
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: 1.0,
-                children: [
-                  _buildStatCard("I know", '${wordStats['known']}',
-                      Icons.check_circle, Colors.green),
-                  _buildStatCard("I don't know", '${wordStats['unknown']}',
-                      Icons.cancel_rounded, Colors.red),
-                  _buildStatCard("I am not sure", '${wordStats['unsure']}',
-                      Icons.remove_circle_rounded, Colors.orange),
-                  _buildStatCard("Not studied", '${wordStats['unmarked']}',
-                      Icons.help_outline_rounded, Colors.grey),
-                ],
-              ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Total Words Statistics", style: headingMedium),
+            const SizedBox(height: 12),
+            // 1. Genel Bilgiler
+            GridView.count(
+              mainAxisSpacing: 2.0,
+              crossAxisSpacing: 18.0,
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              childAspectRatio: 1.0,
+              children: [
+                _buildStatCard("I know", '${wordStats['known']}',
+                    Icons.check_circle, Colors.green),
+                _buildStatCard("I don't know", '${wordStats['unknown']}',
+                    Icons.cancel_rounded, Colors.red),
+                _buildStatCard("I am not sure", '${wordStats['unsure']}',
+                    Icons.remove_circle_rounded, Colors.orange),
+                _buildStatCard("Not studied", '${wordStats['unmarked']}',
+                    Icons.help_outline_rounded, Colors.grey),
+              ],
+            ),
 
-              const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-              // 2. Kelime Türleri
-              Text("Words I Know (By Type)", style: headingMedium),
-              const SizedBox(height: 12),
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: 1.4,
-                children: [
-                  _buildTypeStatCard("Adjectives", adjectives, adjsFront),
-                  _buildTypeStatCard("Adverbs", adverbs, advsFront),
-                  _buildTypeStatCard("Nouns", nouns, nounsFront),
-                  _buildTypeStatCard("Verbs", verbs, verbsFront),
-                ],
-              ),
+            // 2. Kelime Türleri
+            Text("Words I Know (By Type)", style: headingMedium),
+            const SizedBox(height: 12),
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              childAspectRatio: 1.4,
+              children: [
+                _buildTypeStatCard("Adjectives", adjectives, adjsFront),
+                _buildTypeStatCard("Adverbs", adverbs, advsFront),
+                _buildTypeStatCard("Nouns", nouns, nounsFront),
+                _buildTypeStatCard("Verbs", verbs, verbsFront),
+              ],
+            ),
 
-              const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-              // 3. Kullanım Bilgileri
-              Text("App Usage Info", style: headingMedium),
-              const SizedBox(height: 12),
-              GridView.count(
-                mainAxisSpacing: 2.0,
-                crossAxisSpacing: 22.0,
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: 1.0,
-                children: [
-                  _buildAppUsageCard(Icons.calendar_today,
-                      "You have been working for $totalDays Days", Colors.teal),
-                  _buildAppUsageCard(
-                      Icons.bar_chart,
-                      "You've learned an average of ${dailyAverage.toStringAsFixed(1)} words every day, that's great!",
-                      Colors.indigo),
-                  //_buildStatCard("Time Spent", totalTimeSpent,
-                  //  Icons.access_time, Colors.brown),
-                ],
-              ),
-            ],
-          ),
+            // 3. Kullanım Bilgileri
+            Text("App Usage Info", style: headingMedium),
+            const SizedBox(height: 12),
+            GridView.count(
+              mainAxisSpacing: 2.0,
+              crossAxisSpacing: 22.0,
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              childAspectRatio: 1.0,
+              children: [
+                _buildAppUsageCard(Icons.calendar_today,
+                    "You have been working for $totalDays Days", Colors.teal),
+                _buildAppUsageCard(
+                    Icons.bar_chart,
+                    "You've learned an average of ${dailyAverage.toStringAsFixed(1)} words every day, that's great!",
+                    Colors.indigo),
+                //_buildStatCard("Time Spent", totalTimeSpent,
+                //  Icons.access_time, Colors.brown),
+              ],
+            ),
+          ],
         ),
       ),
     );

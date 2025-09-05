@@ -36,7 +36,6 @@ class _WordsPageState extends State<WordsPage> {
     super.dispose();
   }
 
-  /// 🔹 SharedPreferences’a kelime durumunu kaydet
   Future<void> _saveWordStatus(String word, WordStatus status) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('word_status_$word', status.toString());
@@ -46,7 +45,7 @@ class _WordsPageState extends State<WordsPage> {
   Future<WordStatus> _loadWordStatus(String word) async {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getString('word_status_$word');
-    if (saved == null) return WordStatus.none; // Başlangıçta renkli
+    if (saved == null) return WordStatus.none;
     return WordStatus.values.firstWhere(
       (s) => s.toString() == saved,
       orElse: () => WordStatus.none,
@@ -71,41 +70,54 @@ class _WordsPageState extends State<WordsPage> {
   /// 🔹 Ünite tamamlandığında SharedPreferences ve UI bildirimi
   void _onUnitCompleted() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setBool('unit_${widget.unit}_completed', true);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content: Text(
-              'Congratulations! You have studied all the words in this unit.')),
-    );
+    // Kaç kelime "known"
+    int knownCount = words.where((w) => w.status == WordStatus.known).length;
+    int total = words.length;
 
-    int nextUnit = widget.unit + 1;
-    prefs.setBool('unit_${nextUnit}_unlocked', true);
+    // En az %90 biliniyorsa (örn: 20 kelimeden 18)
+    if (knownCount >= (total * 0.9).floor()) {
+      prefs.setBool('unit_${widget.unit}_completed', true);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Congratulations! You unlocked the next unit 🎉')),
+      );
+
+      int nextUnit = widget.unit + 1;
+      prefs.setBool('unit_${nextUnit}_unlocked', true);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You need to know at least 90% of the words.')),
+      );
+    }
   }
 
   /// 🔹 Sonraki kelimeye geç (kaydırma veya buton)
-  void _nextPage({bool markUnknownIfEmpty = false}) {
-    if (markUnknownIfEmpty) {
-      if (words[currentPage].status == WordStatus.none) {
-        _saveWordStatus(words[currentPage].englishWord, WordStatus.none);
-      }
-    }
-
+  void _nextPage() {
     if (currentPage < words.length - 1) {
       setState(() {
         currentPage++;
       });
       _pageController.animateToPage(
         currentPage,
-        duration: Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     } else {
-      if (words.every((w) => w.status == WordStatus.known)) {
+      // ✅ ünite bittiğinde kontrol yap
+      int knownCount = words.where((w) => w.status == WordStatus.known).length;
+      int total = words.length;
+
+      if (knownCount >= (total * 0.9).floor()) {
         _onUnitCompleted();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('You have studied all the words.')),
+          const SnackBar(
+            content: Text(
+              'You need to know at least 90% of the words to unlock the next unit.',
+            ),
+          ),
         );
       }
     }
@@ -116,8 +128,12 @@ class _WordsPageState extends State<WordsPage> {
     setState(() {
       words[currentPage].status = status;
     });
-    _saveWordStatus(words[currentPage].englishWord, status);
-    _nextPage();
+    _saveWordStatus(
+      words[currentPage].englishWord,
+      status,
+    );
+
+    _nextPage(); // ✅ sadece buton tetikliyor
   }
 
   /// 🔹 Buton renklerini belirle
@@ -172,13 +188,9 @@ class _WordsPageState extends State<WordsPage> {
               itemCount: words.length,
               physics: ClampingScrollPhysics(),
               onPageChanged: (index) {
-                if (index > currentPage) {
-                  _nextPage(markUnknownIfEmpty: true);
-                } else {
-                  setState(() {
-                    currentPage = index;
-                  });
-                }
+                setState(() {
+                  currentPage = index;
+                });
               },
               itemBuilder: (context, index) {
                 final word = words[index];
@@ -187,12 +199,6 @@ class _WordsPageState extends State<WordsPage> {
                   child: CustomFlipCard(
                     key: ValueKey('${word.englishWord}_${word.status}'),
                     word: word,
-                    onStatusChanged: (status) {
-                      setState(() {
-                        word.status = status;
-                      });
-                      _saveWordStatus(word.englishWord, status);
-                    },
                   ),
                 );
               },

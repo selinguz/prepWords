@@ -22,6 +22,10 @@ class _HomePageState extends State<HomePage> {
   int _knownWords = 0;
   final int _totalWords = 960;
 
+  int beginnerUnlocked = 0;
+  int intermediateUnlocked = 0;
+  int advancedUnlocked = 0;
+
   Future<void> _loadProgress() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -37,6 +41,38 @@ class _HomePageState extends State<HomePage> {
 
     setState(() {
       _knownWords = count;
+    });
+
+    int beginner = 0;
+    int intermediate = 0;
+    int advanced = 0;
+
+    // Beginner → 1–6
+    for (int i = 1; i <= 6; i++) {
+      if (i == 1 || prefs.getBool('unit_${i}_unlocked') == true) {
+        beginner++;
+      }
+    }
+
+    // Intermediate → 7–28 (22 unit)
+    for (int i = 7; i <= 28; i++) {
+      if (prefs.getBool('unit_${i}_unlocked') == true) {
+        intermediate++;
+      }
+    }
+
+    // Advanced → 29–48 (20 unit)
+    for (int i = 29; i <= 48; i++) {
+      if (prefs.getBool('unit_${i}_unlocked') == true) {
+        advanced++;
+      }
+    }
+
+    setState(() {
+      _knownWords = count;
+      beginnerUnlocked = beginner;
+      intermediateUnlocked = intermediate;
+      advancedUnlocked = advanced;
     });
   }
 
@@ -278,44 +314,68 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(
                     width: MediaQuery.of(context).size.width,
                     child: _levelCard(
-                        'Beginner', '6 Units', Icons.star, Colors.green, () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => LevelsPage(
-                              level: 1, levelName: 'Beginner', unitCount: 6),
-                        ),
-                      );
-                    }),
+                      'Beginner',
+                      6, // toplam unit
+                      beginnerUnlocked, // açılan unit sayısı (state’ten geliyor)
+                      Icons.star,
+                      Colors.green,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => LevelsPage(
+                              level: 1,
+                              levelName: 'Beginner',
+                              unitCount: 10,
+                            ),
+                          ),
+                        ).then((_) => _loadProgress());
+                      },
+                    ),
                   ),
                   SizedBox(
                     width: MediaQuery.of(context).size.width,
                     child: _levelCard(
-                        'Intermediate', '22 Units', Icons.star, Colors.orange,
-                        () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => LevelsPage(
+                      'Intermediate',
+                      22, // toplam unit
+                      intermediateUnlocked,
+                      Icons.star,
+                      Colors.orange,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => LevelsPage(
                               level: 2,
                               levelName: 'Intermediate',
-                              unitCount: 22),
-                        ),
-                      );
-                    }),
+                              unitCount: 22,
+                            ),
+                          ),
+                        ).then((_) => _loadProgress());
+                      },
+                    ),
                   ),
                   SizedBox(
                     width: MediaQuery.of(context).size.width,
                     child: _levelCard(
-                        'Advanced', '20 Units', Icons.star, Colors.red, () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => LevelsPage(
-                              level: 3, levelName: 'Advanced', unitCount: 20),
-                        ),
-                      );
-                    }),
+                      'Advanced',
+                      20, // toplam unit
+                      advancedUnlocked,
+                      Icons.star,
+                      Colors.red,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => LevelsPage(
+                              level: 3,
+                              levelName: 'Advanced',
+                              unitCount: 20,
+                            ),
+                          ),
+                        ).then((_) => _loadProgress());
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -337,13 +397,20 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Widget _levelCard(String title, String subtitle, IconData icon, Color color,
-      VoidCallback onTap) {
+  Widget _levelCard(
+    String title,
+    int totalUnits,
+    int unlockedUnits,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    final double progress = totalUnits > 0 ? unlockedUnits / totalUnits : 0.0;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: MediaQuery.sizeOf(context)
-            .width, // sabit genişlik, ekran dışına taşmasın
+        width: MediaQuery.sizeOf(context).width,
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -363,6 +430,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ⭐ mevcut yıldız ikonları korunuyor
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: List.generate(
@@ -370,21 +438,39 @@ class _HomePageState extends State<HomePage> {
                     ? 1
                     : title == 'Intermediate'
                         ? 2
-                        : 3, 
+                        : 3,
                 (index) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 30,
-                  ),
+                  child: Icon(icon, color: color, size: 28),
                 ),
               ),
             ),
             SizedBox(height: 12),
+
+            // Başlık
             Text(title, style: headingMedium.copyWith(fontSize: 18)),
-            SizedBox(height: 4),
-            Text(subtitle, style: bodySmall),
+            SizedBox(height: 6),
+
+            // 🔹 Progress bar + metin (renkler değiştirilmedi)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 8,
+                  backgroundColor: Colors.grey.withValues(alpha: 0.2),
+                  color: color,
+                ),
+                SizedBox(height: 6),
+                Text(
+                  "$unlockedUnits / $totalUnits Units Unlocked",
+                  style: bodySmall.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: textGreyColor,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
