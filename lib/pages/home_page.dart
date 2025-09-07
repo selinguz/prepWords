@@ -326,7 +326,7 @@ class _HomePageState extends State<HomePage> {
                             builder: (_) => LevelsPage(
                               level: 1,
                               levelName: 'Beginner',
-                              unitCount: 10,
+                              unitCount: 6,
                             ),
                           ),
                         ).then((_) => _loadProgress());

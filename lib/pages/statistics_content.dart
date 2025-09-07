@@ -28,6 +28,13 @@ class _StatisticsContentState extends State<StatisticsContent> {
   int nouns = 0;
   int verbs = 0;
 
+  final Map<String, int> totalWordsByType = {
+    'adjectives': 194,
+    'adverbs': 126,
+    'nouns': 384,
+    'verbs': 256,
+  };
+
   @override
   void initState() {
     super.initState();
@@ -35,71 +42,69 @@ class _StatisticsContentState extends State<StatisticsContent> {
   }
 
   Future<void> _loadStatistics() async {
+    setState(() => isLoading = true);
+
     final prefs = await SharedPreferences.getInstance();
 
+    // 🔹 SharedPreferences'tan tüm kelime durumlarını tek seferde oku
+    final Map<String, String> statusMap = {};
+    for (var key in prefs.getKeys()) {
+      if (key.startsWith('word_status_')) {
+        statusMap[key.replaceFirst('word_status_', '')] =
+            prefs.getString(key) ?? '';
+      }
+    }
+
+    // 🔹 Firebase çağrılarını paralel çalıştır
+    List<Future<List<WordModel>>> futures = [];
+    for (int i = 1; i <= 48; i++) {
+      futures.add(firebaseService.fetchWordsByUnit(i));
+    }
+    final results = await Future.wait(futures);
+    final List<WordModel> allWords = results.expand((x) => x).toList();
+
+    // 🔹 WordModel'leri Map olarak tut, hızlı lookup için
+    final Map<String, WordModel> wordMap = {
+      for (var w in allWords) w.englishWord: w
+    };
+
+    // Sayaçlar
     int known = 0;
     int unknown = 0;
     int unsure = 0;
     int unmarked = 0;
 
-    // Kelime türleri
     int adj = 0;
     int adv = 0;
     int noun = 0;
     int verb = 0;
 
-    // 🔹 Firebase’den tüm kelimeleri al
-    List<WordModel> allWords = [];
-    for (int i = 1; i <= 48; i++) {
-      final words = await firebaseService.fetchWordsByUnit(i);
-      allWords.addAll(words);
-    }
+    // 🔹 Durumları hızlıca işle
+    statusMap.forEach((word, statusStr) {
+      final wordModel = wordMap[word];
 
-    // 🔹 Preferences'teki durumları kontrol et
-    for (var key in prefs.getKeys()) {
-      if (key.startsWith('word_status_')) {
-        final word = key.replaceFirst('word_status_', '');
-        final statusStr = prefs.getString(key);
-
-        // Bu kelime allWords içinde var mı?
-        final wordModel = allWords.firstWhere(
-          (w) => w.englishWord == word,
-          orElse: () => WordModel(
-            englishWord: word,
-            turkishMeaning: '',
-            wordType: '',
-            exampleSentence: '',
-            exampleTranslation: '',
-            unit: 0,
-          ),
-        );
-
-        if (statusStr == WordStatus.known.toString()) {
-          known++;
-
-          // Kelime tipine göre sayaç
-          final type = wordModel.wordType.toLowerCase().trim();
-          if (type.startsWith('adjective')) {
-            adj++;
-          } else if (type.startsWith('adverb')) {
-            adv++;
-          } else if (type.startsWith('noun')) {
-            noun++;
-          } else if (type.startsWith('verb')) {
-            verb++;
-          }
-        } else if (statusStr == WordStatus.unknown.toString()) {
-          unknown++;
-        } else if (statusStr == WordStatus.unsure.toString()) {
-          unsure++;
-        }
+      if (statusStr == WordStatus.known.toString()) {
+        known++;
+        final type = wordModel?.wordType.toLowerCase().trim() ?? '';
+        if (type.startsWith('adjective'))
+          adj++;
+        else if (type.startsWith('adverb'))
+          adv++;
+        else if (type.startsWith('noun'))
+          noun++;
+        else if (type.startsWith('verb')) verb++;
+      } else if (statusStr == WordStatus.unknown.toString()) {
+        unknown++;
+      } else if (statusStr == WordStatus.unsure.toString()) {
+        unsure++;
       }
-    }
+    });
 
+    // 🔹 Toplam kelime sayısı
     int totalWords = 960;
     unmarked = totalWords - (known + unsure + unknown);
 
-    // Kullanıcıya göre gün sayısı
+    // 🔹 Gün sayısı ve günlük ortalama
     final user = FirebaseAuth.instance.currentUser;
     final creationTime = user?.metadata.creationTime ?? DateTime.now();
     final now = DateTime.now();
@@ -107,7 +112,7 @@ class _StatisticsContentState extends State<StatisticsContent> {
 
     dailyAverage = known / totalDays;
 
-    // State güncelle
+    // 🔹 State güncelle
     setState(() {
       wordStats = {
         'known': known,
@@ -183,7 +188,11 @@ class _StatisticsContentState extends State<StatisticsContent> {
     );
   }
 
-  Widget _buildTypeStatCard(String title, int value, Color color) {
+  Widget _buildTypeStatCard(
+      String title, int learnedCount, int totalCount, Color color) {
+    double percentage = totalCount > 0 ? (learnedCount / totalCount) * 100 : 0;
+    String percentageText = '${percentage.toStringAsFixed(0)}%';
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       padding: const EdgeInsets.all(16),
@@ -198,50 +207,45 @@ class _StatisticsContentState extends State<StatisticsContent> {
           ),
         ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
         children: [
-          // 🔹 Sol renk şeridi
-          Container(
-            width: 8,
-            height: 48,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(6),
-            ),
+          Text(
+            title,
+            style: headingSmall.copyWith(
+                color: color, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(width: 12),
-
-          // 🔹 Başlık + Değer (responsive)
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Flexible(
-                  child: Text(
-                    title,
-                    style: headingSmall.copyWith(
-                        color: color, fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    softWrap: false,
+          const SizedBox(height: 6),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // 🔹 Circle avatar yüzde için
+              CircleAvatar(
+                backgroundColor: color,
+                radius: 24, // daire boyutu
+                child: Text(
+                  percentageText,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 6),
-                Flexible(
-                  child: Text(
-                    '$value',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.black87,
+              ),
+              const SizedBox(width: 12),
+              // 🔹 Başlık + Değerler
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$learnedCount / $totalCount',
+                      style:
+                          const TextStyle(fontSize: 14, color: Colors.black87),
                     ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    softWrap: false,
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
@@ -332,21 +336,23 @@ class _StatisticsContentState extends State<StatisticsContent> {
               ],
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
             // 2. Kelime Türleri
             Text("Words I Know (By Type)", style: headingMedium),
             const SizedBox(height: 12),
             GridView.count(
+              crossAxisSpacing: 1.5,
+              mainAxisSpacing: 1.5,
               crossAxisCount: 2,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               childAspectRatio: 1.4,
               children: [
-                _buildTypeStatCard("Adjectives", adjectives, adjsFront),
-                _buildTypeStatCard("Adverbs", adverbs, advsFront),
-                _buildTypeStatCard("Nouns", nouns, nounsFront),
-                _buildTypeStatCard("Verbs", verbs, verbsFront),
+                _buildTypeStatCard("Adjectives", adjectives, 194, adjsFront),
+                _buildTypeStatCard("Adverbs", adverbs, 126, advsFront),
+                _buildTypeStatCard("Nouns", nouns, 384, nounsFront),
+                _buildTypeStatCard("Verbs", verbs, 256, verbsFront),
               ],
             ),
 

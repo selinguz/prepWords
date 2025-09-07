@@ -36,13 +36,27 @@ class LevelsPage extends StatefulWidget {
 }
 
 class _LevelsPageState extends State<LevelsPage> {
-  late List<bool> unlockedUnits;
+  List<bool> unlockedUnits = [];
   final FirebaseService _firebaseService = FirebaseService();
 
   @override
   void initState() {
     super.initState();
     _loadUnlockedUnits();
+  }
+
+  Future<int> _getKnownWordsCount(int unit) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<WordModel> words = await _firebaseService.fetchWordsByUnit(unit);
+
+    int count = 0;
+    for (var word in words) {
+      final status = prefs.getString("word_status_${word.englishWord}") ?? "";
+      if (status == WordStatus.known.toString()) {
+        count++;
+      }
+    }
+    return count;
   }
 
   Future<void> _loadUnlockedUnits() async {
@@ -151,11 +165,12 @@ class _LevelsPageState extends State<LevelsPage> {
                       MaterialPageRoute(
                         builder: (context) => WordsPage(
                           unit: globalUnit,
+                          onComplete: () {
+                            _unlockNextUnit(index);
+                          },
                         ),
                       ),
                     );
-                    // Ünite tamamlandıysa bir sonraki ünitenin kilidini aç
-                    await _unlockNextUnit(index);
                   }
                 : null,
             child: Container(
@@ -199,13 +214,19 @@ class _LevelsPageState extends State<LevelsPage> {
                               ),
                             ),
                             SizedBox(height: 4),
-                            Text(
-                              '20 Words',
-                              style: bodySmall.copyWith(
-                                color: isUnlocked
-                                    ? textGreyColor.withAlpha(135)
-                                    : textGreyColor.withAlpha(80),
-                              ),
+                            FutureBuilder<int>(
+                              future: _getKnownWordsCount(globalUnit),
+                              builder: (context, snapshot) {
+                                int knownCount = snapshot.data ?? 0;
+                                return Text(
+                                  '20 Words / $knownCount Known',
+                                  style: bodySmall.copyWith(
+                                    color: isUnlocked
+                                        ? textGreyColor.withAlpha(135)
+                                        : textGreyColor.withAlpha(80),
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),

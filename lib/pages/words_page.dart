@@ -1,5 +1,4 @@
 // ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:prep_words/components/custom_appbar.dart';
 import 'package:prep_words/components/custom_card.dart';
@@ -10,7 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class WordsPage extends StatefulWidget {
   final int unit;
-  const WordsPage({super.key, required this.unit});
+  final VoidCallback? onComplete;
+  const WordsPage({super.key, required this.unit, this.onComplete});
 
   @override
   State<WordsPage> createState() => _WordsPageState();
@@ -58,7 +58,8 @@ class _WordsPageState extends State<WordsPage> {
 
     // Her kelimenin durumu SharedPreferences'ta varsa onu al, yoksa none ata
     for (var w in fetchedWords) {
-      w.status = await _loadWordStatus(w.englishWord);
+      final status = await _loadWordStatus(w.englishWord);
+      w.status = status;
     }
 
     setState(() {
@@ -75,20 +76,27 @@ class _WordsPageState extends State<WordsPage> {
     int knownCount = words.where((w) => w.status == WordStatus.known).length;
     int total = words.length;
 
+    debugPrint(
+        "✅ Unit ${widget.unit} tamamlanma kontrolü: Known = $knownCount / Total = $total");
+
     // En az %90 biliniyorsa (örn: 20 kelimeden 18)
     if (knownCount >= (total * 0.9).floor()) {
       prefs.setBool('unit_${widget.unit}_completed', true);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('Congratulations! You unlocked the next unit 🎉')),
-      );
-
       int nextUnit = widget.unit + 1;
       prefs.setBool('unit_${nextUnit}_unlocked', true);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Congratulations! You unlocked the next unit 🎉')),
+      );
+      if (widget.onComplete != null) {
+        widget.onComplete!.call();
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('You need to know at least 90% of the words.')),
+        const SnackBar(
+            content: Text('You need to know at least 90% of the words.')),
       );
     }
   }
@@ -104,22 +112,6 @@ class _WordsPageState extends State<WordsPage> {
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
-    } else {
-      // ✅ ünite bittiğinde kontrol yap
-      int knownCount = words.where((w) => w.status == WordStatus.known).length;
-      int total = words.length;
-
-      if (knownCount >= (total * 0.9).floor()) {
-        _onUnitCompleted();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'You need to know at least 90% of the words to unlock the next unit.',
-            ),
-          ),
-        );
-      }
     }
   }
 
@@ -128,12 +120,14 @@ class _WordsPageState extends State<WordsPage> {
     setState(() {
       words[currentPage].status = status;
     });
-    _saveWordStatus(
-      words[currentPage].englishWord,
-      status,
-    );
+    _saveWordStatus(words[currentPage].englishWord, status);
 
-    _nextPage(); // ✅ sadece buton tetikliyor
+    if (currentPage < words.length - 1) {
+      _nextPage();
+    } else {
+      // ✅ Son kelime işaretlendiğinde kontrol yap
+      _onUnitCompleted();
+    }
   }
 
   /// 🔹 Buton renklerini belirle
@@ -168,7 +162,7 @@ class _WordsPageState extends State<WordsPage> {
       return Scaffold(
         appBar: CustomAppBar(title: 'Unit ${widget.unit}'),
         backgroundColor: backgrnd,
-        body: Center(child: CircularProgressIndicator()),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -186,7 +180,7 @@ class _WordsPageState extends State<WordsPage> {
             child: PageView.builder(
               controller: _pageController,
               itemCount: words.length,
-              physics: ClampingScrollPhysics(),
+              physics: const ClampingScrollPhysics(),
               onPageChanged: (index) {
                 setState(() {
                   currentPage = index;
