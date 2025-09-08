@@ -1,10 +1,21 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:prep_words/components/custom_appbar.dart';
 import 'package:prep_words/consts.dart';
 import 'package:prep_words/models/word.dart';
+import 'package:prep_words/pages/exercise_page.dart';
 import 'package:prep_words/pages/words_page.dart';
 import 'package:prep_words/services/firebase_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+enum LevelItemType { unit, practice }
+
+class LevelItem {
+  final LevelItemType type;
+  final int? unitNumber; // Unit numarası veya practice numarası
+  LevelItem({required this.type, this.unitNumber});
+}
 
 class LevelsPage extends StatefulWidget {
   final int level;
@@ -36,34 +47,38 @@ class LevelsPage extends StatefulWidget {
 }
 
 class _LevelsPageState extends State<LevelsPage> {
-  List<bool> unlockedUnits = [];
   final FirebaseService _firebaseService = FirebaseService();
+  List<bool> unlockedUnits = [];
+  List<LevelItem> levelItems = [];
 
   @override
   void initState() {
     super.initState();
     _loadUnlockedUnits();
+    _buildLevelItems();
   }
 
-  Future<int> _getKnownWordsCount(int unit) async {
-    final prefs = await SharedPreferences.getInstance();
-    List<WordModel> words = await _firebaseService.fetchWordsByUnit(unit);
+  void _buildLevelItems() {
+    levelItems.clear();
+    int totalUnits = widget.unitCount;
+    for (int i = 0; i < totalUnits; i++) {
+      int globalUnit = widget.startUnit + i;
+      levelItems
+          .add(LevelItem(type: LevelItemType.unit, unitNumber: globalUnit));
 
-    int count = 0;
-    for (var word in words) {
-      final status = prefs.getString("word_status_${word.englishWord}") ?? "";
-      if (status == WordStatus.known.toString()) {
-        count++;
+      // Her 2 unit’ten sonra practice ekle
+      if ((i + 1) % 2 == 0) {
+        int practiceNumber = ((i + 1) ~/ 2);
+        levelItems.add(LevelItem(
+            type: LevelItemType.practice, unitNumber: practiceNumber));
       }
     }
-    return count;
   }
 
   Future<void> _loadUnlockedUnits() async {
     final prefs = await SharedPreferences.getInstance();
     unlockedUnits = List.generate(widget.unitCount, (index) {
       int globalUnit = widget.startUnit + index;
-      // İlk global unit her zaman açık
       if (globalUnit == 1) return true;
       return prefs.getBool('unit_${globalUnit}_unlocked') ?? false;
     });
@@ -81,6 +96,18 @@ class _LevelsPageState extends State<LevelsPage> {
     }
   }
 
+  Future<int> _getKnownWordsCount(int unit) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<WordModel> words = await _firebaseService.fetchWordsByUnit(unit);
+
+    int count = 0;
+    for (var word in words) {
+      final status = prefs.getString("word_status_${word.englishWord}") ?? "";
+      if (status == WordStatus.known.toString()) count++;
+    }
+    return count;
+  }
+
   void _showUnitPreview(int globalUnit) async {
     final prefs = await SharedPreferences.getInstance();
     List<WordModel> words = await _firebaseService.fetchWordsByUnit(globalUnit);
@@ -88,7 +115,6 @@ class _LevelsPageState extends State<LevelsPage> {
     List<Widget> wordWidgets = words.map((word) {
       String status =
           prefs.getString("word_status_${word.englishWord}") ?? "unknown";
-
       Icon icon;
       switch (status) {
         case "WordStatus.known":
@@ -103,18 +129,14 @@ class _LevelsPageState extends State<LevelsPage> {
         default:
           icon = Icon(Icons.help_outline, color: Colors.grey);
       }
-
       return ListTile(
-        title: Text(word.englishWord, style: bodyMedium),
-        trailing: icon,
-      );
+          title: Text(word.englishWord, style: bodyMedium), trailing: icon);
     }).toList();
 
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       isScrollControlled: true,
       builder: (context) {
         return Container(
@@ -122,20 +144,160 @@ class _LevelsPageState extends State<LevelsPage> {
           padding: EdgeInsets.all(16),
           child: Column(
             children: [
-              Text(
-                'Unit $globalUnit Words',
-                style: headingMedium,
-              ),
+              Text('Unit $globalUnit Words', style: headingMedium),
               SizedBox(height: 16),
-              Expanded(
-                child: ListView(
-                  children: wordWidgets,
-                ),
-              ),
+              Expanded(child: ListView(children: wordWidgets)),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildUnitCard(int globalUnit, bool isUnlocked, int index) {
+    return InkWell(
+      onTap: isUnlocked
+          ? () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WordsPage(
+                    unit: globalUnit,
+                    onComplete: () => _unlockNextUnit(index),
+                  ),
+                ),
+              );
+            }
+          : null,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        child: Card(
+          elevation: 3,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: isUnlocked ? primary : Colors.grey,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Icon(isUnlocked ? Icons.check : Icons.lock,
+                        color: textWhiteColor),
+                  ),
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Unit $globalUnit',
+                        style: headingMedium.copyWith(
+                          color: isUnlocked
+                              ? textGreyColor.withAlpha(179)
+                              : textGreyColor.withAlpha(100),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      FutureBuilder<int>(
+                        future: _getKnownWordsCount(globalUnit),
+                        builder: (context, snapshot) {
+                          int knownCount = snapshot.data ?? 0;
+                          return Text(
+                            '20 Words / $knownCount Known',
+                            style: bodySmall.copyWith(
+                              color: isUnlocked
+                                  ? textGreyColor.withAlpha(135)
+                                  : textGreyColor.withAlpha(80),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Row(
+                  children: [
+                    if (isUnlocked)
+                      GestureDetector(
+                        onTap: () => _showUnitPreview(globalUnit),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: adjsFront.withValues(alpha: 0.6),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(Icons.visibility,
+                              color: textWhiteColor, size: 20),
+                        ),
+                      ),
+                    SizedBox(width: 8),
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: isUnlocked ? primary : Colors.grey,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(Icons.arrow_forward_ios,
+                          color: textWhiteColor, size: 18),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPracticeCard(int practiceNumber, int index) {
+    return InkWell(
+      onTap: () async {
+        // Önceki 2 unit’in kelimelerini al
+        int startUnitIndex = (practiceNumber - 1) * 2;
+        List<WordModel> words = [];
+        for (int i = 0; i < 2; i++) {
+          int globalUnit = widget.startUnit + startUnitIndex + i;
+          words.addAll(await _firebaseService.fetchWordsByUnit(globalUnit));
+        }
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PracticeExercisePage(
+              allWords: words,
+              practiceNumber: practiceNumber,
+            ),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        child: Card(
+          color: Colors.blueGrey.shade50,
+          elevation: 2,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            padding: EdgeInsets.all(16),
+            child: Center(
+              child: Text(
+                'Practice $practiceNumber',
+                style: headingMedium.copyWith(color: Colors.blueAccent),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -144,139 +306,24 @@ class _LevelsPageState extends State<LevelsPage> {
     return Scaffold(
       appBar: CustomAppBar(
         title: widget.levelName,
-        onBackPressed: () {
-          Navigator.pushReplacementNamed(context, '/home');
-        },
+        onBackPressed: () => Navigator.pushReplacementNamed(context, '/home'),
       ),
       backgroundColor: backgrnd,
       body: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 18.0),
-        itemCount: widget.unitCount,
+        itemCount: levelItems.length,
         itemBuilder: (context, index) {
-          int globalUnit = widget.startUnit + index;
-          bool isUnlocked =
-              unlockedUnits.isNotEmpty ? unlockedUnits[index] : (index == 0);
-
-          return InkWell(
-            onTap: isUnlocked
-                ? () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => WordsPage(
-                          unit: globalUnit,
-                          onComplete: () {
-                            _unlockNextUnit(index);
-                          },
-                        ),
-                      ),
-                    );
-                  }
-                : null,
-            child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              child: Card(
-                elevation: 3,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Container(
-                  padding: EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      // Sol taraftaki daire
-                      Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: isUnlocked ? primary : Colors.grey,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Icon(
-                            isUnlocked ? Icons.check : Icons.lock,
-                            color: textWhiteColor,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Unit $globalUnit',
-                              style: headingMedium.copyWith(
-                                color: isUnlocked
-                                    ? textGreyColor.withAlpha(179)
-                                    : textGreyColor.withAlpha(100),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            FutureBuilder<int>(
-                              future: _getKnownWordsCount(globalUnit),
-                              builder: (context, snapshot) {
-                                int knownCount = snapshot.data ?? 0;
-                                return Text(
-                                  '20 Words / $knownCount Known',
-                                  style: bodySmall.copyWith(
-                                    color: isUnlocked
-                                        ? textGreyColor.withAlpha(135)
-                                        : textGreyColor.withAlpha(80),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          // 🔹 Yeni önizleme ikonu
-                          if (isUnlocked)
-                            GestureDetector(
-                              onTap: () {
-                                _showUnitPreview(globalUnit);
-                              },
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: adjsFront.withValues(alpha: 0.6),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(
-                                  Icons.visibility,
-                                  color: textWhiteColor,
-                                  size: 20,
-                                ),
-                              ),
-                            ),
-
-                          SizedBox(width: 8),
-                          // Ok ikonu (eski)
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: isUnlocked ? primary : Colors.grey,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              Icons.arrow_forward_ios,
-                              color: textWhiteColor,
-                              size: 18,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
+          final item = levelItems[index];
+          if (item.type == LevelItemType.unit) {
+            int globalUnit = item.unitNumber!;
+            bool isUnlocked = unlockedUnits.isNotEmpty
+                ? unlockedUnits[globalUnit - widget.startUnit]
+                : (globalUnit == 1);
+            return _buildUnitCard(globalUnit, isUnlocked, index);
+          } else {
+            int practiceNumber = item.unitNumber!;
+            return _buildPracticeCard(practiceNumber, index);
+          }
         },
       ),
     );

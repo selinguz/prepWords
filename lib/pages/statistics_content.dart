@@ -1,3 +1,5 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:prep_words/consts.dart';
@@ -86,9 +88,9 @@ class _StatisticsContentState extends State<StatisticsContent> {
       if (statusStr == WordStatus.known.toString()) {
         known++;
         final type = wordModel?.wordType.toLowerCase().trim() ?? '';
-        if (type.startsWith('adjective'))
+        if (type.startsWith('adjective')) {
           adj++;
-        else if (type.startsWith('adverb'))
+        } else if (type.startsWith('adverb'))
           adv++;
         else if (type.startsWith('noun'))
           noun++;
@@ -306,7 +308,7 @@ class _StatisticsContentState extends State<StatisticsContent> {
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         title: Text(
           'Statistics',
-          style: headingLarge.copyWith(fontSize: 30),
+          style: headingLarge,
         ),
       ),
       body: SingleChildScrollView(

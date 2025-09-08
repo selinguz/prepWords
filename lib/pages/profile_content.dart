@@ -94,7 +94,7 @@ class _ProfileContentState extends State<ProfileContent> {
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         title: Text(
           'Profile',
-          style: headingLarge.copyWith(fontSize: 30),
+          style: headingLarge,
         ),
         actions: [
           Padding(
