@@ -24,12 +24,15 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
   late List<List<WordModel>> matchingGroups; // 5’li gruplar
   late PageController _controller;
 
+  // ✅ UI state’ini korumak için
+  Map<int, String?> selectedOptions = {};
+  Map<int, Map<String, String>> matchingGroupState = {};
+
   @override
   void initState() {
     super.initState();
 
     widget.allWords.shuffle();
-
     mcqWords = widget.allWords.take(10).toList();
     List<WordModel> remaining = widget.allWords.skip(10).toList();
     matchingGroups = [];
@@ -88,8 +91,12 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
                         MultipleChoiceQuestionWidget(
                           word: word,
                           allWords: mcqWords,
-                          onAnswered: (correct) {
-                            if (correct) score++;
+                          initialSelectedOption: selectedOptions[index], // ✅ önceki seçimi göster
+                          onAnswered: (correct, selected) {
+                            setState(() {
+                              if (correct) score++;
+                              selectedOptions[index] = selected; // ✅ kaydet
+                            });
                           },
                         ),
                         const SizedBox(height: 24),
@@ -102,14 +109,24 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
                   // 5’li eşleştirme grubu
                   int matchingIndex = index - mcqWords.length;
                   List<WordModel> group = matchingGroups[matchingIndex];
+
+                  // ✅ o gruba ait önceki eşleşmeleri al
+                  Map<String, String> initialMatched =
+                      matchingGroupState[matchingIndex] ?? {};
+
                   return SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
                         MatchingQuestionWidget(
                           words: group,
-                          onCompleted: (correctCount) {
-                            score += correctCount;
+                          initialMatched: initialMatched, // ✅ önceki eşleşmeleri göster
+                          onCompleted: (correctCount, updatedMatched) {
+                            setState(() {
+                              score += correctCount;
+                              // ✅ eşleşme state’ini kaydet
+                              matchingGroupState[matchingIndex] = updatedMatched;
+                            });
                           },
                         ),
                         const SizedBox(height: 24),

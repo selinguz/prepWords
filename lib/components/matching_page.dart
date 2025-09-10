@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:prep_words/consts.dart';
 import 'package:prep_words/models/word.dart';
+import 'package:prep_words/consts.dart';
 
 class MatchingQuestionWidget extends StatefulWidget {
   final List<WordModel> words;
-  final void Function(int correctCount) onCompleted;
+  final Map<String, String>? initialMatched; // ✅ Önceki eşleşmeleri al
+  final void Function(int correctCount, Map<String, String> updatedMatched)
+      onCompleted; // ✅ Güncel eşleşmeleri gönder
 
   const MatchingQuestionWidget({
     super.key,
     required this.words,
     required this.onCompleted,
+    this.initialMatched,
   });
 
   @override
@@ -18,11 +21,11 @@ class MatchingQuestionWidget extends StatefulWidget {
 
 class _MatchingQuestionWidgetState extends State<MatchingQuestionWidget> {
   String? selectedEnglish;
-  Map<String, String> matched = {}; // eşleşenler
+  late Map<String, String> matched; // ✅ eşleşmeleri kaydet
   Map<String, Color> pairColors = {}; // eşleşme sonrası renkler
   late List<String> turkishWords;
 
-  // 5 sabit renk
+  // Sabit renkler
   final List<Color> softColors = [
     Colors.red.shade100,
     Colors.orange.shade100,
@@ -34,19 +37,28 @@ class _MatchingQuestionWidgetState extends State<MatchingQuestionWidget> {
   @override
   void initState() {
     super.initState();
-    // Türkçeleri karıştır ama sabit tut
     turkishWords = widget.words.map((w) => w.turkishMeaning).toList()
       ..shuffle();
+    matched = Map.from(widget.initialMatched ?? {});
+
+    // ✅ Önceki eşleşmeler varsa soft renkleri ata
+    matched.forEach((english, turkish) {
+      final index = widget.words.indexWhere((w) => w.englishWord == english);
+      if (index != -1) {
+        final color = softColors[index % softColors.length];
+        pairColors[english] = color;
+        pairColors[turkish] = color;
+      }
+    });
   }
 
   void handleSelect(String english, String turkish) {
     final word = widget.words.firstWhere((w) => w.englishWord == english);
     final isCorrect = word.turkishMeaning == turkish;
 
-    if (matched.containsKey(english)) return; // zaten doğru eşleşme yapılmış
+    if (matched.containsKey(english)) return; // zaten eşleşmiş
 
     if (isCorrect) {
-      // Doğru cevap
       setState(() {
         matched[english] = turkish;
         pairColors[english] = Colors.green;
@@ -56,13 +68,12 @@ class _MatchingQuestionWidgetState extends State<MatchingQuestionWidget> {
       Future.delayed(const Duration(milliseconds: 500), () {
         final index = widget.words.indexOf(word);
         setState(() {
-          pairColors[english] = softColors[index];
-          pairColors[turkish] = softColors[index];
+          pairColors[english] = softColors[index % softColors.length];
+          pairColors[turkish] = softColors[index % softColors.length];
         });
-        widget.onCompleted(1); // skor +1
+        widget.onCompleted(1, matched); // ✅ doğru ve güncel eşleşme
       });
     } else {
-      // Yanlış cevap
       setState(() {
         pairColors[english] = Colors.red;
         pairColors[turkish] = Colors.red;
@@ -73,7 +84,7 @@ class _MatchingQuestionWidgetState extends State<MatchingQuestionWidget> {
           pairColors.remove(english);
           pairColors.remove(turkish);
         });
-        widget.onCompleted(0); // skor kaydı, yanlış
+        widget.onCompleted(0, matched); // ✅ yanlış, eşleşme güncel
       });
     }
   }
@@ -103,14 +114,17 @@ class _MatchingQuestionWidgetState extends State<MatchingQuestionWidget> {
                               : widget.words.length - groupStart, (i) {
                         final word = widget.words[groupStart + i];
                         final turkish = turkishWords[groupStart + i];
+
                         final matchedEnglish = matched.entries
                             .firstWhere((e) => e.value == turkish,
                                 orElse: () => const MapEntry('', ''))
                             .key;
+
                         final englishColor =
                             matched.containsKey(word.englishWord)
                                 ? pairColors[word.englishWord]
                                 : Colors.white;
+
                         final turkishColor = matchedEnglish.isNotEmpty
                             ? pairColors[matchedEnglish]
                             : Colors.white;

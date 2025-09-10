@@ -5,13 +5,15 @@ import '../models/word.dart';
 class MultipleChoiceQuestionWidget extends StatefulWidget {
   final WordModel word;
   final List<WordModel> allWords;
-  final void Function(bool correct) onAnswered;
+  final void Function(bool correct, String selected) onAnswered;
+  final String? initialSelectedOption;
 
   const MultipleChoiceQuestionWidget({
     super.key,
     required this.word,
     required this.allWords,
     required this.onAnswered,
+    this.initialSelectedOption,
   });
 
   @override
@@ -29,12 +31,14 @@ class _MultipleChoiceQuestionWidgetState
   void initState() {
     super.initState();
 
+    selectedOption = widget.initialSelectedOption;
+    answered = selectedOption != null;
+
     List<String> allMeanings =
         widget.allWords.map((w) => w.turkishMeaning).toList();
     allMeanings.remove(widget.word.turkishMeaning);
     allMeanings.shuffle();
     List<String> fakeOptions = allMeanings.take(3).toList();
-
     options = [...fakeOptions, widget.word.turkishMeaning]..shuffle();
   }
 
@@ -44,7 +48,7 @@ class _MultipleChoiceQuestionWidgetState
       selectedOption = option;
       answered = true;
     });
-    widget.onAnswered(option == widget.word.turkishMeaning);
+    widget.onAnswered(option == widget.word.turkishMeaning, option);
   }
 
   Color _getOptionColor(String option) {
@@ -65,7 +69,6 @@ class _MultipleChoiceQuestionWidgetState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🔹 Kelime ve türü
             Text(
               '${widget.word.englishWord} (${widget.word.wordType})',
               style: TextStyle(
@@ -75,7 +78,6 @@ class _MultipleChoiceQuestionWidgetState
               ),
             ),
             const SizedBox(height: 16),
-            // 🔹 Şıklar
             Column(
               children: options.map((option) {
                 return GestureDetector(

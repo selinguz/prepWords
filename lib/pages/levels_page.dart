@@ -261,38 +261,64 @@ class _LevelsPageState extends State<LevelsPage> {
   }
 
   Widget _buildPracticeCard(int practiceNumber, int index) {
+    // Önceki 2 ünitenin global indexlerini bul
+    int startUnitIndex = (practiceNumber - 1) * 2;
+
+    bool bothUnitsUnlocked = false;
+    if (unlockedUnits.isNotEmpty && startUnitIndex + 1 < unlockedUnits.length) {
+      bool firstUnitUnlocked = unlockedUnits[startUnitIndex];
+      bool secondUnitUnlocked = unlockedUnits[startUnitIndex + 1];
+      bothUnitsUnlocked = firstUnitUnlocked && secondUnitUnlocked;
+    }
+
     return InkWell(
-      onTap: () async {
-        // Önceki 2 unit’in kelimelerini al
-        int startUnitIndex = (practiceNumber - 1) * 2;
-        List<WordModel> words = [];
-        for (int i = 0; i < 2; i++) {
-          int globalUnit = widget.startUnit + startUnitIndex + i;
-          words.addAll(await _firebaseService.fetchWordsByUnit(globalUnit));
-        }
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PracticeExercisePage(
-              allWords: words,
-              practiceNumber: practiceNumber,
-            ),
-          ),
-        );
-      },
+      onTap: bothUnitsUnlocked
+          ? () async {
+              List<WordModel> words = [];
+              for (int i = 0; i < 2; i++) {
+                int globalUnit = widget.startUnit + startUnitIndex + i;
+                words.addAll(
+                    await _firebaseService.fetchWordsByUnit(globalUnit));
+              }
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PracticeExercisePage(
+                    allWords: words,
+                    practiceNumber: practiceNumber,
+                  ),
+                ),
+              );
+            }
+          : null, // kilitliyse null -> tıklanamaz
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         child: Card(
-          color: Colors.blueGrey.shade50,
+          color: bothUnitsUnlocked
+              ? Colors.blueGrey.shade50
+              : Colors.grey.shade300,
           elevation: 2,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           child: Container(
             padding: EdgeInsets.all(16),
             child: Center(
-              child: Text(
-                'Practice $practiceNumber',
-                style: headingMedium.copyWith(color: Colors.blueAccent),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    bothUnitsUnlocked ? Icons.school : Icons.lock,
+                    color: bothUnitsUnlocked ? Colors.blueAccent : Colors.grey,
+                  ),
+                  SizedBox(width: 12),
+                  Text(
+                    'Practice $practiceNumber',
+                    style: headingMedium.copyWith(
+                      color:
+                          bothUnitsUnlocked ? Colors.blueAccent : Colors.grey,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
