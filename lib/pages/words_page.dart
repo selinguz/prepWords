@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class WordsPage extends StatefulWidget {
   final int unit;
   final VoidCallback? onComplete;
+
   const WordsPage({super.key, required this.unit, this.onComplete});
 
   @override
@@ -36,6 +37,7 @@ class _WordsPageState extends State<WordsPage> {
     super.dispose();
   }
 
+  /// 🔹 Kelimenin durumunu kaydet
   Future<void> _saveWordStatus(String word, WordStatus status) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('word_status_$word', status.toString());
@@ -52,14 +54,12 @@ class _WordsPageState extends State<WordsPage> {
     );
   }
 
-  /// 🔹 Kelimeleri yükle ve durumları uygula
+  /// 🔹 Kelimeleri Firebase’den al ve durumlarını yükle
   Future<void> _loadWords() async {
     final fetchedWords = await firebaseService.fetchWordsByUnit(widget.unit);
 
-    // Her kelimenin durumu SharedPreferences'ta varsa onu al, yoksa none ata
     for (var w in fetchedWords) {
-      final status = await _loadWordStatus(w.englishWord);
-      w.status = status;
+      w.status = await _loadWordStatus(w.englishWord);
     }
 
     setState(() {
@@ -71,42 +71,36 @@ class _WordsPageState extends State<WordsPage> {
   /// 🔹 Ünite tamamlandığında SharedPreferences ve UI bildirimi
   void _onUnitCompleted() async {
     final prefs = await SharedPreferences.getInstance();
-
-    // Kaç kelime "known"
     int knownCount = words.where((w) => w.status == WordStatus.known).length;
     int total = words.length;
 
     debugPrint(
         "✅ Unit ${widget.unit} tamamlanma kontrolü: Known = $knownCount / Total = $total");
 
-    // En az %90 biliniyorsa (örn: 20 kelimeden 18)
     if (knownCount >= (total * 0.9).floor()) {
       prefs.setBool('unit_${widget.unit}_completed', true);
-
-      int nextUnit = widget.unit + 1;
-      prefs.setBool('unit_${nextUnit}_unlocked', true);
+      prefs.setBool('unit_${widget.unit + 1}_unlocked', true);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Congratulations! You unlocked the next unit 🎉')),
+          content: Text('Congratulations! You unlocked the next unit 🎉'),
+        ),
       );
-      if (widget.onComplete != null) {
-        widget.onComplete!.call();
-      }
+
+      widget.onComplete?.call();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('You need to know at least 90% of the words.')),
+          content: Text('You need to know at least 90% of the words.'),
+        ),
       );
     }
   }
 
-  /// 🔹 Sonraki kelimeye geç (kaydırma veya buton)
+  /// 🔹 Sonraki kelimeye geç
   void _nextPage() {
     if (currentPage < words.length - 1) {
-      setState(() {
-        currentPage++;
-      });
+      setState(() => currentPage++);
       _pageController.animateToPage(
         currentPage,
         duration: const Duration(milliseconds: 300),
@@ -115,7 +109,7 @@ class _WordsPageState extends State<WordsPage> {
     }
   }
 
-  /// 🔹 Kelimeyi işaretle ve sonraki sayfaya geç
+  /// 🔹 Kelimeyi işaretle ve kaydet
   void _markWord(WordStatus status) {
     setState(() {
       words[currentPage].status = status;
@@ -125,7 +119,6 @@ class _WordsPageState extends State<WordsPage> {
     if (currentPage < words.length - 1) {
       _nextPage();
     } else {
-      // ✅ Son kelime işaretlendiğinde kontrol yap
       _onUnitCompleted();
     }
   }
@@ -133,7 +126,6 @@ class _WordsPageState extends State<WordsPage> {
   /// 🔹 Buton renklerini belirle
   Color getWordButtonColor(WordStatus status, WordStatus buttonType) {
     if (status == WordStatus.none) {
-      // Başlangıçta tüm butonlar renkli
       switch (buttonType) {
         case WordStatus.known:
           return Colors.green;
@@ -145,7 +137,6 @@ class _WordsPageState extends State<WordsPage> {
           return Colors.blueAccent;
       }
     } else {
-      // İşaretlenmiş durumlar
       return status == buttonType
           ? (buttonType == WordStatus.known
               ? Colors.green
@@ -169,9 +160,7 @@ class _WordsPageState extends State<WordsPage> {
     final totalWords = words.length;
 
     return Scaffold(
-      appBar: CustomAppBar(
-        title: 'Unit ${widget.unit}',
-      ),
+      appBar: CustomAppBar(title: 'Unit ${widget.unit}'),
       backgroundColor: backgrnd,
       body: Column(
         children: [
@@ -179,12 +168,10 @@ class _WordsPageState extends State<WordsPage> {
             flex: 80,
             child: PageView.builder(
               controller: _pageController,
-              itemCount: words.length,
+              itemCount: totalWords,
               physics: const ClampingScrollPhysics(),
               onPageChanged: (index) {
-                setState(() {
-                  currentPage = index;
-                });
+                setState(() => currentPage = index);
               },
               itemBuilder: (context, index) {
                 final word = words[index];
@@ -247,9 +234,7 @@ class _WordsPageState extends State<WordsPage> {
               ),
             ),
           ),
-          SizedBox(
-            height: MediaQuery.sizeOf(context).height * 0.03,
-          ),
+          SizedBox(height: MediaQuery.sizeOf(context).height * 0.03),
         ],
       ),
     );

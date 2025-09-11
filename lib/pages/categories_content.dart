@@ -4,6 +4,7 @@ import 'package:prep_words/consts.dart';
 import 'package:prep_words/models/word.dart';
 import 'package:prep_words/services/firebase_service.dart';
 import 'package:prep_words/pages/word_type_detail_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CategoriesContent extends StatefulWidget {
   const CategoriesContent({super.key});
@@ -40,7 +41,6 @@ class _CategoriesContentState extends State<CategoriesContent> {
               ],
             ),
           ),
-          // Kelime türleri listesi
           Expanded(
             child: FutureBuilder<List<String>>(
               future: FirebaseService().getWordTypes(),
@@ -53,6 +53,9 @@ class _CategoriesContentState extends State<CategoriesContent> {
                 }
 
                 final wordTypes = snapshot.data ?? [];
+                wordTypes
+                    .sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+
                 return isListView
                     ? _buildListView(wordTypes)
                     : _buildGridView(wordTypes);
@@ -148,6 +151,24 @@ class _CategoriesContentState extends State<CategoriesContent> {
     );
   }
 
+  Future<List<WordModel>> _loadWordsWithStatus(String wordType) async {
+    final words = await FirebaseService().getWordsByType(wordType);
+    final prefs = await SharedPreferences.getInstance();
+
+    for (var w in words) {
+      final saved = prefs.getString('word_status_${w.englishWord}');
+      if (saved != null) {
+        w.status = WordStatus.values.firstWhere(
+          (s) => s.toString() == saved,
+          orElse: () => WordStatus.none,
+        );
+      } else {
+        w.status = WordStatus.none;
+      }
+    }
+    return words;
+  }
+
   Widget _buildExpandableWordType(String wordType) {
     expandedMap.putIfAbsent(wordType, () => false);
 
@@ -174,7 +195,7 @@ class _CategoriesContentState extends State<CategoriesContent> {
           ),
           if (expandedMap[wordType]!)
             FutureBuilder<List<WordModel>>(
-              future: FirebaseService().getWordsByType(wordType),
+              future: _loadWordsWithStatus(wordType), // <-- burayı değiştirdik
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
@@ -186,9 +207,12 @@ class _CategoriesContentState extends State<CategoriesContent> {
                 }
 
                 final words = snapshot.data ?? [];
+                words.sort((a, b) => a.englishWord
+                    .toLowerCase()
+                    .compareTo(b.englishWord.toLowerCase()));
                 return ListView.separated(
                   shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: words.length,
                   separatorBuilder: (context, index) => Divider(
                     color: Colors.grey.withValues(alpha: 0.2),
@@ -199,16 +223,24 @@ class _CategoriesContentState extends State<CategoriesContent> {
                   itemBuilder: (context, index) {
                     final word = words[index];
                     return ListTile(
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 8),
                       title: Text(word.englishWord, style: bodyLarge),
                       subtitle: Padding(
-                        padding: EdgeInsets.only(top: 4),
+                        padding: const EdgeInsets.only(top: 4),
                         child: Text(word.turkishMeaning, style: bodyMedium),
                       ),
-                      trailing: IconButton(
-                        icon: Icon(Icons.search, color: primary),
-                        onPressed: () => _showWordDetails(context, word),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildWordStatusIndicator(
+                              word.status), // 🔹 Durum ikonu + tooltip
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: Icon(Icons.search, color: primary),
+                            onPressed: () => _showWordDetails(context, word),
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -233,9 +265,10 @@ class _CategoriesContentState extends State<CategoriesContent> {
           children: [
             Text(word.englishWord,
                 style: headingLarge.copyWith(color: primary)),
-            Divider(height: 20),
+            const Divider(height: 20),
             _buildDetailRow('Meaning:', word.turkishMeaning),
             _buildDetailRow('Type:', word.wordType),
+            _buildDetailRow('Unit:', word.unit.toString()),
             _buildDetailRow('Example:', word.exampleSentence, isItalic: true),
             _buildDetailRow('Translation:', word.exampleTranslation),
           ],
@@ -257,8 +290,10 @@ class _CategoriesContentState extends State<CategoriesContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: bodyMedium.copyWith(color: textGreyColor)),
-          SizedBox(height: 4),
+          Text(label,
+              style: bodyLarge.copyWith(
+                  color: Colors.deepOrangeAccent, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
           Text(
             value,
             style: bodyLarge.copyWith(
@@ -268,5 +303,31 @@ class _CategoriesContentState extends State<CategoriesContent> {
         ],
       ),
     );
+  }
+
+  Widget _buildWordStatusIndicator(WordStatus status) {
+    switch (status) {
+      case WordStatus.known:
+        return const Tooltip(
+          message: 'I know',
+          child: Icon(Icons.check_circle, color: Colors.green, size: 24),
+        );
+      case WordStatus.unknown:
+        return const Tooltip(
+          message: 'I don\'t know',
+          child: Icon(Icons.cancel_rounded, color: Colors.red, size: 24),
+        );
+      case WordStatus.unsure:
+        return const Tooltip(
+          message: 'I am not sure',
+          child:
+              Icon(Icons.remove_circle_rounded, color: Colors.orange, size: 24),
+        );
+      case WordStatus.none:
+        return const Tooltip(
+          message: 'I haven\'t studied yet',
+          child: Icon(Icons.help_outline, color: Colors.grey, size: 24),
+        );
+    }
   }
 }

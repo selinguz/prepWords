@@ -33,6 +33,11 @@ class WordTypeDetailPage extends StatelessWidget {
 
           final words = snapshot.data ?? [];
 
+          // ✅ Alfabetik sıralama (English kelimelere göre)
+          words.sort((a, b) => a.englishWord
+              .toLowerCase()
+              .compareTo(b.englishWord.toLowerCase()));
+
           return Column(
             children: [
               Expanded(
