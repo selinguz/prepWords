@@ -55,7 +55,7 @@ class WordModel {
   });
 
   factory WordModel.fromMap(Map<String, dynamic> map) {
-    debugPrint("DEBUG: ${map['englishWord']} status raw => ${map['status']}");
+    
     return WordModel(
       englishWord: map['englishWord'] ?? '',
       turkishMeaning: map['turkishMeaning'] ?? '',

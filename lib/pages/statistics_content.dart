@@ -121,7 +121,6 @@ class _StatisticsContentState extends State<StatisticsContent> {
     final creationTime = user?.metadata.creationTime ?? DateTime.now();
     final now = DateTime.now();
     totalDays = now.difference(creationTime).inDays + 1;
-
     dailyAverage = known / totalDays;
 
     // 🔹 State güncelle
@@ -141,10 +140,20 @@ class _StatisticsContentState extends State<StatisticsContent> {
     });
   }
 
-  Widget _buildPracticeStatCard(int practiceId, List<int> xpList) {
+  Widget _buildPracticeStatCard(int practiceId, List<int> correctList) {
+    final attemptCount = correctList.length;
+
+    // Her denemenin yüzdesini hesapla
+    final List<double> percentages =
+        correctList.map((c) => (c / 40.0 * 100.0)).toList();
+
+    // Kümülatif başarı = ortalama
+    final successRate = percentages.isNotEmpty
+        ? percentages.reduce((a, b) => a + b) / percentages.length
+        : 0.0;
+
     return GestureDetector(
       onTap: () {
-        // Modal ile detayları göster
         showModalBottomSheet(
           context: context,
           builder: (_) {
@@ -152,15 +161,17 @@ class _StatisticsContentState extends State<StatisticsContent> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Practice $practiceId Details',
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
+                  Text('Practice $practiceId Details', style: headingLarge),
                   const SizedBox(height: 12),
-                  ...xpList.asMap().entries.map((e) {
-                    return Text('Attempt ${e.key + 1}: ${e.value} XP');
+                  Text("Success Rate: ${successRate.toStringAsFixed(1)}%",
+                      style: bodyMedium),
+                  const SizedBox(height: 12),
+                  ...percentages.asMap().entries.map((e) {
+                    return Text(
+                        'Attempt ${e.key + 1}: ${e.value.toStringAsFixed(1)}%',
+                        style: bodyMedium);
                   }),
                 ],
               ),
@@ -170,26 +181,55 @@ class _StatisticsContentState extends State<StatisticsContent> {
       },
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 6),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.indigo.shade100, width: 1),
           boxShadow: const [
             BoxShadow(
-              color: Colors.black12,
-              blurRadius: 6,
-              offset: Offset(0, 3),
-            ),
+                color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
           ],
         ),
         child: Row(
           children: [
-            Icon(Icons.list, color: Colors.indigo),
-            const SizedBox(width: 12),
-            Text(
-              'Practice $practiceId: ${xpList.length} attempts',
-              style: const TextStyle(fontSize: 16),
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: Colors.indigo,
+              child: Text(
+                "$practiceId",
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold),
+              ),
             ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Practice $practiceId",
+                      style: bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text("$attemptCount attempts",
+                      style: bodyMedium.copyWith(
+                          color: Colors.grey[600], fontSize: 13)),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text("${successRate.toStringAsFixed(1)}% success",
+                    style: bodyMedium.copyWith(
+                        color: successRate >= 50
+                            ? Colors.green[700]
+                            : Colors.red[700],
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600)),
+              ],
+            ),
+            const SizedBox(width: 6),
+            const Icon(Icons.chevron_right, color: Colors.indigo),
           ],
         ),
       ),
@@ -236,10 +276,7 @@ class _StatisticsContentState extends State<StatisticsContent> {
                   const SizedBox(height: 6),
                   Text(
                     value,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      color: Colors.black87,
-                    ),
+                    style: headingMedium.copyWith(fontWeight: FontWeight.bold),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -288,11 +325,7 @@ class _StatisticsContentState extends State<StatisticsContent> {
                 radius: 24, // daire boyutu
                 child: Text(
                   percentageText,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: bodyMedium,
                 ),
               ),
               const SizedBox(width: 12),
@@ -303,8 +336,7 @@ class _StatisticsContentState extends State<StatisticsContent> {
                   children: [
                     Text(
                       '$learnedCount / $totalCount',
-                      style:
-                          const TextStyle(fontSize: 14, color: Colors.black87),
+                      style: bodySmall,
                     ),
                   ],
                 ),
@@ -316,7 +348,8 @@ class _StatisticsContentState extends State<StatisticsContent> {
     );
   }
 
-  Widget _buildAppUsageCard(IconData icon, String text, Color color) {
+  Widget _buildAppUsageCard(IconData icon, String? text, Color color,
+      {Widget? richText}) {
     return Container(
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -343,12 +376,13 @@ class _StatisticsContentState extends State<StatisticsContent> {
           ),
           const SizedBox(width: 16),
           Flexible(
-            child: Text(
-              text,
-              style: bodyMedium,
-              maxLines: 4,
-              softWrap: true,
-            ),
+            child: richText ??
+                Text(
+                  text ?? "",
+                  style: bodyMedium,
+                  maxLines: 4,
+                  softWrap: true,
+                ),
           ),
         ],
       ),
@@ -425,22 +459,48 @@ class _StatisticsContentState extends State<StatisticsContent> {
             // 3. Kullanım Bilgileri
             Text("App Usage Info", style: headingMedium),
             const SizedBox(height: 12),
-            GridView.count(
-              mainAxisSpacing: 2.0,
-              crossAxisSpacing: 22.0,
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: 1.0,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildAppUsageCard(Icons.calendar_today,
-                    "You have been working for $totalDays Days", Colors.teal),
                 _buildAppUsageCard(
-                    Icons.bar_chart,
-                    "You've learned an average of ${dailyAverage.toStringAsFixed(1)} words every day, that's great!",
-                    Colors.indigo),
-                //_buildStatCard("Time Spent", totalTimeSpent,
-                //  Icons.access_time, Colors.brown),
+                  Icons.calendar_today,
+                  null,
+                  Colors.teal,
+                  richText: Text.rich(
+                    TextSpan(
+                      style: bodyMedium,
+                      children: [
+                        const TextSpan(text: "You have been working for "),
+                        TextSpan(
+                          text: "$totalDays",
+                          style: bodyLarge.copyWith(
+                              fontWeight: FontWeight.bold, color: Colors.teal),
+                        ),
+                        const TextSpan(text: " Days"),
+                      ],
+                    ),
+                  ),
+                ),
+                _buildAppUsageCard(
+                  Icons.bar_chart,
+                  null,
+                  Colors.indigo,
+                  richText: Text.rich(
+                    TextSpan(
+                      style: bodyMedium,
+                      children: [
+                        const TextSpan(text: "You've learned an average of "),
+                        TextSpan(
+                          text: dailyAverage.toStringAsFixed(1),
+                          style: bodyLarge.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.indigo),
+                        ),
+                        const TextSpan(text: " words every day, that's great!"),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 24),

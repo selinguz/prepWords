@@ -61,6 +61,24 @@ class _LevelsPageState extends State<LevelsPage> {
   void _buildLevelItems() {
     levelItems.clear();
     int totalUnits = widget.unitCount;
+    int practiceOffset;
+
+    switch (widget.level) {
+      case 1: // Beginner
+        practiceOffset = 1;
+        break;
+      case 2: // Intermediate
+        practiceOffset = 4;
+        break;
+      case 3: // Advanced
+        practiceOffset = 15;
+        break;
+      default:
+        practiceOffset = 1;
+    }
+
+    int practiceCounter = 0;
+
     for (int i = 0; i < totalUnits; i++) {
       int globalUnit = widget.startUnit + i;
       levelItems
@@ -68,9 +86,10 @@ class _LevelsPageState extends State<LevelsPage> {
 
       // Her 2 unit’ten sonra practice ekle
       if ((i + 1) % 2 == 0) {
-        int practiceNumber = ((i + 1) ~/ 2);
+        practiceCounter++;
         levelItems.add(LevelItem(
-            type: LevelItemType.practice, unitNumber: practiceNumber));
+            type: LevelItemType.practice,
+            unitNumber: practiceOffset + practiceCounter - 1));
       }
     }
   }
@@ -261,70 +280,81 @@ class _LevelsPageState extends State<LevelsPage> {
   }
 
   Widget _buildPracticeCard(int practiceNumber, int index) {
-    // Önceki 2 ünitenin global indexlerini bul
-    int startUnitIndex = (practiceNumber - 1) * 2;
+    return FutureBuilder<bool>(
+      future: _areUnitsEnoughForPractice(practiceNumber),
+      builder: (context, snapshot) {
+        bool bothUnitsUnlocked = snapshot.data ?? false;
 
-    bool bothUnitsUnlocked = false;
-    if (unlockedUnits.isNotEmpty && startUnitIndex + 1 < unlockedUnits.length) {
-      bool firstUnitUnlocked = unlockedUnits[startUnitIndex];
-      bool secondUnitUnlocked = unlockedUnits[startUnitIndex + 1];
-      bothUnitsUnlocked = firstUnitUnlocked && secondUnitUnlocked;
-    }
-
-    return InkWell(
-      onTap: bothUnitsUnlocked
-          ? () async {
-              List<WordModel> words = [];
-              for (int i = 0; i < 2; i++) {
-                int globalUnit = widget.startUnit + startUnitIndex + i;
-                words.addAll(
-                    await _firebaseService.fetchWordsByUnit(globalUnit));
-              }
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PracticeExercisePage(
-                    allWords: words,
-                    practiceNumber: practiceNumber,
+        return InkWell(
+          onTap: bothUnitsUnlocked
+              ? () async {
+                  List<WordModel> words = [];
+                  int startUnitIndex = (practiceNumber - 1) * 2;
+                  for (int i = 0; i < 2; i++) {
+                    int globalUnit = widget.startUnit + startUnitIndex + i;
+                    words.addAll(
+                        await _firebaseService.fetchWordsByUnit(globalUnit));
+                  }
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PracticeExercisePage(
+                        allWords: words,
+                        practiceNumber: practiceNumber,
+                      ),
+                    ),
+                  );
+                }
+              : null,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            child: Card(
+              color: bothUnitsUnlocked
+                  ? Colors.blueGrey.shade50
+                  : Colors.grey.shade300,
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              child: Container(
+                padding: EdgeInsets.all(16),
+                child: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        bothUnitsUnlocked ? Icons.school : Icons.lock,
+                        color:
+                            bothUnitsUnlocked ? Colors.blueAccent : Colors.grey,
+                      ),
+                      SizedBox(width: 12),
+                      Text(
+                        'Practice $practiceNumber',
+                        style: headingMedium.copyWith(
+                          color: bothUnitsUnlocked
+                              ? Colors.blueAccent
+                              : Colors.grey,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              );
-            }
-          : null, // kilitliyse null -> tıklanamaz
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        child: Card(
-          color: bothUnitsUnlocked
-              ? Colors.blueGrey.shade50
-              : Colors.grey.shade300,
-          elevation: 2,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          child: Container(
-            padding: EdgeInsets.all(16),
-            child: Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    bothUnitsUnlocked ? Icons.school : Icons.lock,
-                    color: bothUnitsUnlocked ? Colors.blueAccent : Colors.grey,
-                  ),
-                  SizedBox(width: 12),
-                  Text(
-                    'Practice $practiceNumber',
-                    style: headingMedium.copyWith(
-                      color:
-                          bothUnitsUnlocked ? Colors.blueAccent : Colors.grey,
-                    ),
-                  ),
-                ],
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
+  }
+
+  Future<bool> _areUnitsEnoughForPractice(int practiceNumber) async {
+    int startUnitIndex = (practiceNumber - 1) * 2;
+    if (unlockedUnits.length <= startUnitIndex + 1) return false;
+
+    int count1 = await _getKnownWordsCount(widget.startUnit + startUnitIndex);
+    int count2 =
+        await _getKnownWordsCount(widget.startUnit + startUnitIndex + 1);
+
+    return count1 >= 18 && count2 >= 18;
   }
 
   @override

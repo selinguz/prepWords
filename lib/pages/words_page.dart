@@ -74,9 +74,6 @@ class _WordsPageState extends State<WordsPage> {
     int knownCount = words.where((w) => w.status == WordStatus.known).length;
     int total = words.length;
 
-    debugPrint(
-        "✅ Unit ${widget.unit} tamamlanma kontrolü: Known = $knownCount / Total = $total");
-
     if (knownCount >= (total * 0.9).floor()) {
       prefs.setBool('unit_${widget.unit}_completed', true);
       prefs.setBool('unit_${widget.unit + 1}_unlocked', true);
