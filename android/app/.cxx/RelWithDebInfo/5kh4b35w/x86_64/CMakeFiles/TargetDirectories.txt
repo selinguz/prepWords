@@ -1,0 +1,2 @@
+/Users/selinnamak/Documents/projeler/prepWords/prepWords/android/app/.cxx/RelWithDebInfo/5kh4b35w/x86_64/CMakeFiles/edit_cache.dir
+/Users/selinnamak/Documents/projeler/prepWords/prepWords/android/app/.cxx/RelWithDebInfo/5kh4b35w/x86_64/CMakeFiles/rebuild_cache.dir

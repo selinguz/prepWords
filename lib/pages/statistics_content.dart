@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:prep_words/consts.dart';
+import 'package:prep_words/data/practice_stats.dart';
 import 'package:prep_words/models/word.dart';
 import 'package:prep_words/services/firebase_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,10 +38,20 @@ class _StatisticsContentState extends State<StatisticsContent> {
     'verbs': 256,
   };
 
+  Map<int, List<int>> practiceStats = {};
+
   @override
   void initState() {
     super.initState();
     _loadStatistics();
+    _loadPracticeStats();
+  }
+
+  Future<void> _loadPracticeStats() async {
+    final stats = await PracticeStats.getAllStats(10); // örn. 10 practice
+    setState(() {
+      practiceStats = stats;
+    });
   }
 
   Future<void> _loadStatistics() async {
@@ -48,7 +59,6 @@ class _StatisticsContentState extends State<StatisticsContent> {
 
     final prefs = await SharedPreferences.getInstance();
 
-    // 🔹 SharedPreferences'tan tüm kelime durumlarını tek seferde oku
     final Map<String, String> statusMap = {};
     for (var key in prefs.getKeys()) {
       if (key.startsWith('word_status_')) {
@@ -129,9 +139,61 @@ class _StatisticsContentState extends State<StatisticsContent> {
 
       isLoading = false;
     });
+  }
 
-    debugPrint(
-        "Word types: adj=$adjectives, adv=$adverbs, noun=$nouns, verb=$verbs");
+  Widget _buildPracticeStatCard(int practiceId, List<int> xpList) {
+    return GestureDetector(
+      onTap: () {
+        // Modal ile detayları göster
+        showModalBottomSheet(
+          context: context,
+          builder: (_) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Practice $practiceId Details',
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  ...xpList.asMap().entries.map((e) {
+                    return Text('Attempt ${e.key + 1}: ${e.value} XP');
+                  }),
+                ],
+              ),
+            );
+          },
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.list, color: Colors.indigo),
+            const SizedBox(width: 12),
+            Text(
+              'Practice $practiceId: ${xpList.length} attempts',
+              style: const TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildStatCard(
@@ -380,6 +442,12 @@ class _StatisticsContentState extends State<StatisticsContent> {
                 //_buildStatCard("Time Spent", totalTimeSpent,
                 //  Icons.access_time, Colors.brown),
               ],
+            ),
+            const SizedBox(height: 24),
+            Text("Practice Stats", style: headingMedium),
+            const SizedBox(height: 12),
+            ...practiceStats.entries.map(
+              (e) => _buildPracticeStatCard(e.key, e.value),
             ),
           ],
         ),

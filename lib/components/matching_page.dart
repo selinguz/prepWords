@@ -56,7 +56,9 @@ class _MatchingQuestionWidgetState extends State<MatchingQuestionWidget> {
     final word = widget.words.firstWhere((w) => w.englishWord == english);
     final isCorrect = word.turkishMeaning == turkish;
 
-    if (matched.containsKey(english)) return; // zaten eşleşmiş
+    if (matched.containsKey(english)) {
+      return; // zaten eşleşmiş (doğru ise ignore)
+    }
 
     if (isCorrect) {
       setState(() {
@@ -68,10 +70,11 @@ class _MatchingQuestionWidgetState extends State<MatchingQuestionWidget> {
       Future.delayed(const Duration(milliseconds: 500), () {
         final index = widget.words.indexOf(word);
         setState(() {
-          pairColors[english] = softColors[index % softColors.length];
-          pairColors[turkish] = softColors[index % softColors.length];
+          final soft = softColors[index % softColors.length];
+          pairColors[english] = soft;
+          pairColors[turkish] = soft;
         });
-        widget.onCompleted(1, matched); // ✅ doğru ve güncel eşleşme
+        widget.onCompleted(1, Map.from(matched)); // ✅ doğru ve güncel eşleşme
       });
     } else {
       setState(() {
@@ -81,10 +84,11 @@ class _MatchingQuestionWidgetState extends State<MatchingQuestionWidget> {
 
       Future.delayed(const Duration(milliseconds: 500), () {
         setState(() {
+          // temporary red'i temizle
           pairColors.remove(english);
           pairColors.remove(turkish);
         });
-        widget.onCompleted(0, matched); // ✅ yanlış, eşleşme güncel
+        widget.onCompleted(0, Map.from(matched)); // ✅ yanlış, eşleşme güncel
       });
     }
   }
@@ -120,14 +124,14 @@ class _MatchingQuestionWidgetState extends State<MatchingQuestionWidget> {
                                 orElse: () => const MapEntry('', ''))
                             .key;
 
+                        // 🔧 DÜZELTME: pairColors'u doğrudan kullan (hem geçici hem kalıcı renkleri gösterir)
                         final englishColor =
-                            matched.containsKey(word.englishWord)
-                                ? pairColors[word.englishWord]
-                                : Colors.white;
-
-                        final turkishColor = matchedEnglish.isNotEmpty
-                            ? pairColors[matchedEnglish]
-                            : Colors.white;
+                            pairColors[word.englishWord] ?? Colors.white;
+                        final turkishColor = (matchedEnglish.isNotEmpty
+                                ? pairColors[matchedEnglish]
+                                : null) ??
+                            pairColors[turkish] ??
+                            Colors.white;
 
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 3),
@@ -179,9 +183,8 @@ class _MatchingQuestionWidgetState extends State<MatchingQuestionWidget> {
                                 Expanded(
                                   child: GestureDetector(
                                     onTap: () {
-                                      if (selectedEnglish != null &&
-                                          !matched
-                                              .containsKey(selectedEnglish)) {
+                                      // ⚠️ Buradaki şartı sadeleştirdik: sadece bir İngilizce seçiliyse işlem yap
+                                      if (selectedEnglish != null) {
                                         handleSelect(selectedEnglish!, turkish);
                                       }
                                     },

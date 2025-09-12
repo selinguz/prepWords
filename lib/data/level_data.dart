@@ -1,63 +1,61 @@
 class LevelData {
   static const Map<String, Map<String, String>> levels = {
     "Explorer": {
-      "range": "0-6",
+      "range": "0-199",
       "motto": "Every big journey starts with a single word."
     },
     "Beginner": {
-      "range": "7-12",
+      "range": "200-599",
       "motto": "The basics are the foundation of mastery."
     },
     "Learner": {
-      "range": "13-18",
+      "range": "600-999",
       "motto": "Step by step, you’re building strong skills."
     },
     "Adventurer": {
-      "range": "19-24",
+      "range": "1000-1499",
       "motto": "Your curiosity takes you further every day."
     },
     "Skilled": {
-      "range": "25-30",
+      "range": "1500-2099",
       "motto": "Practice turns knowledge into power."
     },
     "Advanced": {
-      "range": "31-36",
+      "range": "2100-2799",
       "motto": "You’ve come far — keep aiming higher."
     },
     "Expert": {
-      "range": "37-42",
+      "range": "2800-3599",
       "motto": "Your skills inspire others — you’re almost there."
     },
     "Master": {
-      "range": "43-48",
+      "range": "3600-9999",
       "motto": "You’ve reached the peak — now you lead the way."
     },
   };
 
-  /// Kullanıcının level numarasına göre level ismini döndürür
-  static String getLevelName(int level) {
+  static String getLevelName(int xp) {
     for (var entry in levels.entries) {
       final range = entry.value["range"] as String;
       final parts = range.split("-");
       final start = int.parse(parts[0]);
       final end = int.parse(parts[1]);
 
-      if (level >= start && level <= end) {
+      if (xp >= start && xp <= end) {
         return entry.key;
       }
     }
     return "Unknown";
   }
 
-  /// Kullanıcının level numarasına göre mottosunu döndürür
-  static String getLevelMotto(int level) {
+  static String getLevelMotto(int xp) {
     for (var entry in levels.entries) {
       final range = entry.value["range"] as String;
       final parts = range.split("-");
       final start = int.parse(parts[0]);
       final end = int.parse(parts[1]);
 
-      if (level >= start && level <= end) {
+      if (xp >= start && xp <= end) {
         return entry.value["motto"] as String;
       }
     }
