@@ -1,26 +1,39 @@
 import 'package:flutter/material.dart';
 
-const Color secondaryGreen = Color(0xFFA8D08D);
-const Color secondaryBlue = Color(0xFFDDECF9);
-const Color secondaryOrange = Color(0xFFFFE8CC);
+// 🌿 Verilen 4 ana renk
+const Color green = Color(0xFF0A7029);
+const Color yellow = Color(0xFFFEDE00);
+const Color yellowGreen = Color(0xFFC8DF52);
+const Color mint = Color(0xFFDBE8D8);
 
-const Color primary = Color(0xFFF5A623);
-const Color secondary = Color(0xFF23A6F5);
-const Color backgrnd = Color(0xFFF7F7F7);
+// 🔹 Sekonder destek renkleri
+const Color secondaryGreen = yellowGreen; // destekleyici yeşil ton
+const Color secondaryBlue = mint; // ferahlatıcı mint, mavi yerine geçti
+const Color secondaryOrange = yellow; // turuncu yerine sarı vurgusu
+
+// 🔹 Ana renkler
+const Color primary = green; // ana vurgu yeşil
+const Color secondary = yellow; // ikinci vurgu sarı
+const Color backgrnd = Color(0xFFFDFDF9); // hafif krem-beyaz
 const Color textWhiteColor = Colors.white;
-const Color textGreyColor = Color(0xFF4A4A4A);
-const Color cardFrontColor = Color(0xFF333333);
-const Color cardBackColor = Color(0xFFF8F8F8);
-const Color warnOrange = Color(0xFFFF715B);
+const Color textGreyColor = Color(0xFF2E2E2E); // koyu nötr gri
+const Color cardFrontColor = green; // kart ön yüzü koyu yeşil
+const Color cardBackColor = mint; // kart arka yüzü mint
+const Color warnOrange =
+    Color(0xFFE67E22); // gerektiğinde kontrast için sıcak turuncu
 
-const Color nounsFront = Color(0xFF4A90E2);
-const Color nounsBack = Color(0xFFD6E6FA);
-const Color adjsFront = Color(0xFF81C784);
-const Color adjsBack = Color(0xFFDFF1E2);
-const Color verbsFront = Color(0xFFE57373);
+// 🔹 Kelime türleri için kategori renkleri
+const Color nounsFront = Color(0xFF0A7029);
+const Color nounsBack = Color(0xFFC8DF52);
+
+const Color adjsFront = Color(0xFFF5C200);
+const Color adjsBack = Color(0xFFFFF9CC);
+
+const Color verbsFront = Color(0xFFD9534F);
 const Color verbsBack = Color(0xFFF8D6D6);
-const Color advsFront = Color(0xFFFBC02D);
-const Color advsBack = Color(0xFFFFF3D1);
+
+const Color advsFront = Color(0xFFFF8C42);
+const Color advsBack = Color(0xFFFFE5B4);
 
 Color getFrontColor(String wordType) {
   switch (wordType) {

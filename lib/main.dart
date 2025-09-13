@@ -93,7 +93,7 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: primary, // Splash Screen background color
       body: Center(
-        child: Image.asset('assets/images/splash.gif'),
+        child: Image.asset('assets/images/splashPrimary.gif'),
       ),
     );
   }

@@ -60,75 +60,71 @@ class _MultipleChoiceQuestionWidgetState
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${widget.word.englishWord} (${widget.word.wordType})',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: cardFrontColor,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 18.0),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${widget.word.englishWord} (${widget.word.wordType})',
+                style: headingLarge,
               ),
-            ),
-            const SizedBox(height: 16),
-            Column(
-              children: options.map((option) {
-                return GestureDetector(
-                  onTap: () => _selectOption(option),
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 14, horizontal: 18),
-                    decoration: BoxDecoration(
-                      color: _getOptionColor(option),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 4,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            option,
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: textGreyColor,
+              const SizedBox(height: 16),
+              Column(
+                children: options.map((option) {
+                  return GestureDetector(
+                    onTap: () => _selectOption(option),
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 14, horizontal: 18),
+                      decoration: BoxDecoration(
+                        color: _getOptionColor(option),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 4,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              option,
+                              style: bodyLarge.copyWith(fontSize: 18),
                             ),
                           ),
-                        ),
-                        if (answered)
-                          Icon(
-                            option == widget.word.turkishMeaning
-                                ? Icons.check_circle
-                                : option == selectedOption
-                                    ? Icons.cancel
-                                    : null,
-                            color: option == widget.word.turkishMeaning
-                                ? secondaryGreen
-                                : option == selectedOption
-                                    ? warnOrange
-                                    : Colors.transparent,
-                          ),
-                      ],
+                          if (answered)
+                            Icon(
+                              option == widget.word.turkishMeaning
+                                  ? Icons.check_circle
+                                  : option == selectedOption
+                                      ? Icons.cancel
+                                      : null,
+                              color: option == widget.word.turkishMeaning
+                                  ? secondaryGreen
+                                  : option == selectedOption
+                                      ? warnOrange
+                                      : Colors.transparent,
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
         ),
       ),
     );

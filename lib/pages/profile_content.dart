@@ -87,7 +87,7 @@ class _ProfileContentState extends State<ProfileContent> {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: kToolbarHeight * 1.2,
-        backgroundColor: primary,
+        backgroundColor: yellowGreen,
         elevation: 0,
         centerTitle: true,
         iconTheme: IconThemeData(color: textGreyColor),

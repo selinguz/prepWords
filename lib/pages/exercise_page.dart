@@ -8,35 +8,42 @@ import 'package:prep_words/consts.dart';
 import 'package:prep_words/data/practice_stats.dart';
 
 class PracticeExercisePage extends StatefulWidget {
-  final List<WordModel> allWords;
-  final int practiceNumber;
-
   const PracticeExercisePage({
     super.key,
     required this.allWords,
     required this.practiceNumber,
   });
 
+  final List<WordModel> allWords;
+  final int practiceNumber;
+
   @override
   State<PracticeExercisePage> createState() => _PracticeExercisePageState();
 }
 
 class _PracticeExercisePageState extends State<PracticeExercisePage> {
-  int score = 0;
   int earnedXp = 0;
+  int matchingCorrect = 0;
+  Map<int, Map<String, String>> matchingGroupState = {};
+  late List<List<WordModel>> matchingGroups;
+  int matchingWrong = 0;
+  int mcqCorrect = 0;
+  late List<WordModel> mcqWords;
+  int mcqWrong = 0;
+  // Matching cevabı için state kontrolü
+  Map<int, Map<String, String>> previousMatchingState = {};
+
+  int score = 0;
+  Map<int, String?> selectedOptions = {};
   bool showFinalScore = false;
 
-  int mcqCorrect = 0;
-  int mcqWrong = 0;
-  int matchingCorrect = 0;
-  int matchingWrong = 0;
-
-  late List<WordModel> mcqWords;
-  late List<List<WordModel>> matchingGroups;
   late PageController _controller;
 
-  Map<int, String?> selectedOptions = {};
-  Map<int, Map<String, String>> matchingGroupState = {};
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -54,12 +61,6 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
     _controller = PageController();
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
   void _handleMCQAnswer(bool correct) {
     setState(() {
       if (correct) {
@@ -75,9 +76,6 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
           "MCQ -> Correct: $mcqCorrect, Wrong: $mcqWrong, Score: $score, XP: $earnedXp");
     });
   }
-
-  // Matching cevabı için state kontrolü
-  Map<int, Map<String, String>> previousMatchingState = {};
 
   void _handleMatchingAnswer(int matchingIndex, Map<String, String> matched) {
     // Önceki eşleşmeleri al
@@ -115,7 +113,7 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: kToolbarHeight * 1.2,
-        backgroundColor: primary,
+        backgroundColor: yellowGreen,
         elevation: 0,
         centerTitle: true,
         title: Text(
@@ -137,16 +135,12 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
                       Text("Final Score",
                           style: headingLarge.copyWith(fontSize: 32)),
                       const SizedBox(height: 24),
-                      Text("$score",
-                          style: const TextStyle(
-                              fontSize: 48, fontWeight: FontWeight.bold)),
+                      Text("$score", style: headingLarge),
                       const SizedBox(height: 24),
                       Text("XP Earned",
                           style: headingLarge.copyWith(fontSize: 32)),
                       const SizedBox(height: 24),
-                      Text("$earnedXp",
-                          style: const TextStyle(
-                              fontSize: 48, fontWeight: FontWeight.bold)),
+                      Text("$earnedXp", style: headingLarge),
                     ],
                   ),
                 );
@@ -170,8 +164,6 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
 
               int matchingIndex = index - mcqWords.length;
               List<WordModel> group = matchingGroups[matchingIndex];
-              Map<String, String> initialMatched =
-                  matchingGroupState[matchingIndex] ?? {};
 
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
@@ -198,9 +190,8 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
             child: Container(
               alignment: Alignment.center,
               child: Text(
-                "Page ${(_controller.hasClients ? (_controller.page?.round() ?? 0) + 1 : 1)} / $totalPagesWithFinal",
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                "Question ${(_controller.hasClients ? (_controller.page?.round() ?? 0) + 1 : 1)} / $totalPagesWithFinal",
+                style: headingMedium,
               ),
             ),
           ),
@@ -213,7 +204,18 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
                 int currentIndex =
                     _controller.hasClients ? _controller.page?.round() ?? 0 : 0;
                 bool isLastQuestionPage = currentIndex == totalPages - 1;
+
                 if (!isLastQuestionPage) return const SizedBox.shrink();
+
+                // ✅ Son matching sayfası için kontrol
+                int lastMatchingIndex = matchingGroups.length - 1;
+                Map<String, String> lastMatched =
+                    matchingGroupState[lastMatchingIndex] ?? {};
+                int requiredMatches = matchingGroups[lastMatchingIndex].length;
+
+                bool allMatched = lastMatched.length == requiredMatches;
+
+                if (!allMatched) return const SizedBox.shrink();
 
                 return ElevatedButton(
                   onPressed: () async {
@@ -234,9 +236,7 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text("Finish",
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  child: const Text("Finish", style: whiteButtonText),
                 );
               }),
             ),

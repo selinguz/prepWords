@@ -77,7 +77,7 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: kToolbarHeight * 1.2,
-        backgroundColor: primary,
+        backgroundColor: yellowGreen,
         elevation: 0,
         centerTitle: true,
         title: Text(

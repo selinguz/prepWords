@@ -124,7 +124,6 @@ class _MatchingQuestionWidgetState extends State<MatchingQuestionWidget> {
                                 orElse: () => const MapEntry('', ''))
                             .key;
 
-                        // 🔧 DÜZELTME: pairColors'u doğrudan kullan (hem geçici hem kalıcı renkleri gösterir)
                         final englishColor =
                             pairColors[word.englishWord] ?? Colors.white;
                         final turkishColor = (matchedEnglish.isNotEmpty
@@ -170,10 +169,7 @@ class _MatchingQuestionWidgetState extends State<MatchingQuestionWidget> {
                                       child: Text(
                                         word.englishWord,
                                         textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          color: textGreyColor,
-                                        ),
+                                        style: bodyLarge.copyWith(fontSize: 18),
                                       ),
                                     ),
                                   ),
@@ -183,7 +179,6 @@ class _MatchingQuestionWidgetState extends State<MatchingQuestionWidget> {
                                 Expanded(
                                   child: GestureDetector(
                                     onTap: () {
-                                      // ⚠️ Buradaki şartı sadeleştirdik: sadece bir İngilizce seçiliyse işlem yap
                                       if (selectedEnglish != null) {
                                         handleSelect(selectedEnglish!, turkish);
                                       }
@@ -208,10 +203,7 @@ class _MatchingQuestionWidgetState extends State<MatchingQuestionWidget> {
                                       child: Text(
                                         turkish,
                                         textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          color: textGreyColor,
-                                        ),
+                                        style: bodyLarge.copyWith(fontSize: 18),
                                       ),
                                     ),
                                   ),

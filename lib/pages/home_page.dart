@@ -118,50 +118,38 @@ class _HomePageState extends State<HomePage> {
         levelName,
         motto,
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              primary,
-              secondaryOrange.withValues(alpha: 0.6),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+      bottomNavigationBar: BottomNavigationBar(
+        elevation: 0,
+        backgroundColor: yellowGreen, // 🔹 gradient yerine tek renk
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        selectedItemColor: textWhiteColor,
+        unselectedItemColor: textGreyColor,
+        selectedLabelStyle: bodySmall.copyWith(fontWeight: FontWeight.w600),
+        unselectedLabelStyle: bodySmall,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_rounded),
+            label: 'Home',
           ),
-        ),
-        child: BottomNavigationBar(
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          currentIndex: _selectedIndex,
-          onTap: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          selectedItemColor: textWhiteColor,
-          unselectedItemColor: textGreyColor,
-          selectedLabelStyle: bodySmall.copyWith(fontWeight: FontWeight.w600),
-          unselectedLabelStyle: bodySmall,
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_rounded),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.category_rounded),
-              label: 'Categories',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.stacked_bar_chart),
-              label: 'Statistics',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_rounded),
-              label: 'Profile',
-            ),
-          ],
-        ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.category_rounded),
+            label: 'Categories',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.stacked_bar_chart),
+            label: 'Statistics',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_rounded),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }
@@ -178,9 +166,7 @@ class _HomePageState extends State<HomePage> {
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [primary, secondaryOrange.withValues(alpha: 0.6)],
-                  ),
+                  color: yellowGreen, // 🔹 gradient yerine tek renk
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
@@ -207,13 +193,13 @@ class _HomePageState extends State<HomePage> {
                               Text(
                                 _userName,
                                 style: headingMedium.copyWith(
-                                    color: textWhiteColor),
+                                    color: textGreyColor),
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
                                 levelName,
                                 style:
-                                    bodyMedium.copyWith(color: textWhiteColor),
+                                    bodyMedium.copyWith(color: textGreyColor),
                               ),
                             ],
                           ),
@@ -245,58 +231,27 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(height: 12),
                     Text(
                       motto,
-                      style: bodyMedium.copyWith(color: textWhiteColor),
+                      style: bodyMedium.copyWith(
+                          color: textGreyColor.withValues(alpha: 0.7)),
                       softWrap: true,
                     ),
                     SizedBox(height: 16),
                     Text('Progress',
-                        style: bodySmall.copyWith(color: textWhiteColor)),
+                        style: bodySmall.copyWith(color: textGreyColor)),
                     SizedBox(height: 8),
                     LinearProgressIndicator(
                       value: levelProgress,
                       backgroundColor: Colors.white24,
-                      color: Colors.orangeAccent,
+                      color: primary,
                       minHeight: 10,
                     ),
                     SizedBox(height: 4),
                     Text('${(levelProgress * 100).round()}% Complete',
-                        style: bodySmall.copyWith(color: textWhiteColor)),
+                        style: bodySmall.copyWith(
+                            color: textGreyColor.withValues(alpha: 0.6))),
                   ],
                 ),
               ),
-
-              /* Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: textWhiteColor,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.grey.withValues(alpha: 0.1),
-                              blurRadius: 5,
-                              offset: Offset(0, 3))
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Icon(Icons.local_fire_department,
-                              color: secondaryOrange),
-                          SizedBox(height: 8),
-                          Text('Current Streak', style: bodySmall),
-                          Text('1', style: headingMedium),
-                          Text('Keep it up! 👍',
-                              style: bodySmall.copyWith(color: secondaryBlue)) 
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
- */
 
               // ------------------ Quick Actions ------------------
               Padding(
@@ -305,7 +260,6 @@ class _HomePageState extends State<HomePage> {
               ),
               SizedBox(height: 12),
 
-// Kartları sarmalayan Wrap
               Wrap(
                 spacing: 22,
                 runSpacing: 12,
@@ -315,10 +269,11 @@ class _HomePageState extends State<HomePage> {
                     width: MediaQuery.of(context).size.width,
                     child: _levelCard(
                       'Beginner',
-                      6, // toplam unit
-                      beginnerUnlocked, // açılan unit sayısı (state’ten geliyor)
+                      6,
+                      beginnerUnlocked,
                       Icons.star,
-                      Colors.green,
+                      Color(0xFF0A7029), // Icon rengi (koyu yeşil)
+                      Color(0xFFD8F0D8), // Kart arka planı (hafif yeşil)
                       () {
                         Navigator.push(
                           context,
@@ -337,10 +292,11 @@ class _HomePageState extends State<HomePage> {
                     width: MediaQuery.of(context).size.width,
                     child: _levelCard(
                       'Intermediate',
-                      22, // toplam unit
+                      22,
                       intermediateUnlocked,
                       Icons.star,
-                      Colors.orange,
+                      Color(0xFFFFA500), // Icon rengi (koyu turuncu)
+                      Color(0xFFFFE5CC), // Kart arka planı (hafif turuncu)
                       () {
                         Navigator.push(
                           context,
@@ -359,10 +315,11 @@ class _HomePageState extends State<HomePage> {
                     width: MediaQuery.of(context).size.width,
                     child: _levelCard(
                       'Advanced',
-                      20, // toplam unit
+                      20,
                       advancedUnlocked,
                       Icons.star,
-                      Colors.red,
+                      Color(0xFFFF0000), // Icon rengi (koyu kırmızı)
+                      Color(0xFFFFD6D6), // Kart arka planı (hafif kırmızı)
                       () {
                         Navigator.push(
                           context,
@@ -402,7 +359,8 @@ class _HomePageState extends State<HomePage> {
     int totalUnits,
     int unlockedUnits,
     IconData icon,
-    Color color,
+    Color iconColor, // 🔹 ikon ve progress rengi
+    Color backgroundColor, // 🔹 kart arka planı
     VoidCallback onTap,
   ) {
     final double progress = totalUnits > 0 ? unlockedUnits / totalUnits : 0.0;
@@ -413,11 +371,7 @@ class _HomePageState extends State<HomePage> {
         width: MediaQuery.sizeOf(context).width,
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [color.withValues(alpha: 0.2), Colors.white],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: backgroundColor, // 🔹 arka plan rengi
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -430,7 +384,6 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ⭐ mevcut yıldız ikonları korunuyor
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: List.generate(
@@ -441,17 +394,18 @@ class _HomePageState extends State<HomePage> {
                         : 3,
                 (index) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: Icon(icon, color: color, size: 28),
+                  child:
+                      Icon(icon, color: iconColor, size: 28), // 🔹 ikon rengi
                 ),
               ),
             ),
             SizedBox(height: 12),
-
-            // Başlık
-            Text(title, style: headingMedium.copyWith(fontSize: 18)),
+            Text(
+              title,
+              style: headingMedium.copyWith(
+                  fontSize: 18, color: iconColor), // 🔹 başlık rengi
+            ),
             SizedBox(height: 6),
-
-            // 🔹 Progress bar + metin (renkler değiştirilmedi)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -459,7 +413,7 @@ class _HomePageState extends State<HomePage> {
                   value: progress,
                   minHeight: 8,
                   backgroundColor: Colors.grey.withValues(alpha: 0.2),
-                  color: color,
+                  color: iconColor, // 🔹 progress rengi
                 ),
                 SizedBox(height: 6),
                 Text(

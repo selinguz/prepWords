@@ -397,7 +397,7 @@ class _StatisticsContentState extends State<StatisticsContent> {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: kToolbarHeight * 1.2,
-        backgroundColor: primary,
+        backgroundColor: yellowGreen,
         elevation: 0,
         centerTitle: true,
         iconTheme: IconThemeData(color: textGreyColor),
