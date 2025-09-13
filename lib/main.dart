@@ -91,9 +91,9 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: primary, // Splash Screen background color
+      backgroundColor: yellowGreen, // Splash Screen background color
       body: Center(
-        child: Image.asset('assets/images/splashPrimary.gif'),
+        child: Image.asset('assets/images/splashYellowGreen.gif'),
       ),
     );
   }

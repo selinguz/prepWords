@@ -28,7 +28,7 @@ class _SignUpPageState extends State<SignUpPage> {
         children: [
           Positioned.fill(
             child: Image.asset(
-              'assets/images/background.png',
+              'assets/images/greenBackground.png',
               opacity: const AlwaysStoppedAnimation(0.7),
               fit: BoxFit.cover,
             ),

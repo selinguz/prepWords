@@ -61,7 +61,7 @@ class SignInPageState extends State<SignInPage> {
         children: [
           Positioned.fill(
             child: Image.asset(
-              'assets/images/background.png',
+              'assets/images/greenBackground.png',
               opacity: const AlwaysStoppedAnimation<double>(0.7),
               fit: BoxFit.cover,
             ),
@@ -85,7 +85,7 @@ class SignInPageState extends State<SignInPage> {
                     keyboardDismissBehavior:
                         ScrollViewKeyboardDismissBehavior.onDrag,
                     physics: const ClampingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: ConstrainedBox(
                       constraints:
                           BoxConstraints(minHeight: constraints.maxHeight),
@@ -137,32 +137,184 @@ class SignInPageState extends State<SignInPage> {
 
                               // --- Beni hatırla & Şifremi unuttum
                               Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Expanded(
-                                    child: Row(
-                                      children: [
-                                        Checkbox(
-                                          activeColor: const Color(0xFFF5A623),
-                                          value: _rememberMe,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              _rememberMe = value ?? false;
-                                            });
-                                          },
-                                        ),
-                                        Text("Remember me",
-                                            style: greyButtonText),
-                                      ],
-                                    ),
+                                  Row(
+                                    children: [
+                                      Checkbox(
+                                        activeColor: primary,
+                                        value: _rememberMe,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _rememberMe = value ?? false;
+                                          });
+                                        },
+                                      ),
+                                      Text("Remember me",
+                                          style: greyButtonText.copyWith(
+                                              fontSize: 15.0,
+                                              color: Colors.black
+                                                  .withValues(alpha: 0.6))),
+                                    ],
                                   ),
                                   TextButton(
                                     onPressed: () {
-                                      // şifre sıfırlama dialog'un
-                                      // ...
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          final TextEditingController
+                                              resetEmailController =
+                                              TextEditingController();
+
+                                          return AlertDialog(
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                            ),
+                                            backgroundColor: Colors.white,
+                                            title: SizedBox(
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.8,
+                                              child: Text(
+                                                "Reset Password",
+                                                style: headingMedium.copyWith(
+                                                  color: primary,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                            content: TextField(
+                                              controller: resetEmailController,
+                                              keyboardType:
+                                                  TextInputType.emailAddress,
+                                              decoration: InputDecoration(
+                                                labelText: "Enter your email",
+                                                labelStyle:
+                                                    greyButtonText.copyWith(
+                                                        color:
+                                                            Colors.grey[600]),
+                                                focusedBorder:
+                                                    OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: primary, width: 2),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                enabledBorder:
+                                                    OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color:
+                                                          Colors.grey.shade300),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                prefixIcon: Icon(Icons.email,
+                                                    color: primary),
+                                              ),
+                                            ),
+                                            actionsPadding:
+                                                const EdgeInsets.symmetric(
+                                                    horizontal: 12,
+                                                    vertical: 8),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.of(context).pop(),
+                                                child: Text(
+                                                  "Cancel",
+                                                  style:
+                                                      greyButtonText.copyWith(
+                                                          color:
+                                                              Colors.grey[700]),
+                                                ),
+                                              ),
+                                              ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: primary,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                  ),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 20,
+                                                      vertical: 12),
+                                                  elevation: 4,
+                                                ),
+                                                onPressed: () async {
+                                                  final email =
+                                                      resetEmailController.text
+                                                          .trim();
+
+                                                  if (email.isEmpty) {
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      const SnackBar(
+                                                          content: Text(
+                                                              "Please enter your email.")),
+                                                    );
+                                                    return;
+                                                  }
+
+                                                  try {
+                                                    await FirebaseAuth.instance
+                                                        .sendPasswordResetEmail(
+                                                            email: email);
+
+                                                    Navigator.of(context)
+                                                        .pop(); // dialog kapat
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      const SnackBar(
+                                                        content: Text(
+                                                            "Password reset link sent to your email."),
+                                                      ),
+                                                    );
+                                                  } on FirebaseAuthException catch (e) {
+                                                    String errorMessage;
+                                                    if (e.code ==
+                                                        'user-not-found') {
+                                                      errorMessage =
+                                                          'No user found with this email.';
+                                                    } else if (e.code ==
+                                                        'invalid-email') {
+                                                      errorMessage =
+                                                          'Invalid email address.';
+                                                    } else {
+                                                      errorMessage =
+                                                          'An error occurred: ${e.message}';
+                                                    }
+
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      SnackBar(
+                                                          content: Text(
+                                                              errorMessage)),
+                                                    );
+                                                  }
+                                                },
+                                                child: Text("Reset",
+                                                    style: whiteButtonText),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
                                     },
-                                    child: Text('Forgot your password?',
-                                        style: greyButtonText.copyWith(
-                                            color: warnOrange)),
+                                    child: Text(
+                                      'Forgot password?',
+                                      style: greyButtonText.copyWith(
+                                        color: warnOrange,
+                                        fontSize: 15.0,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -218,7 +370,6 @@ class SignInPageState extends State<SignInPage> {
                                 ),
                               ),
 
-                              // --- Alt boşluk: klavye kapalıyken büyük, açıksa küçük
                               SizedBox(height: keyboardOpen ? 12 : 40),
 
                               // --- Kayıt bağlantısı
@@ -226,10 +377,10 @@ class SignInPageState extends State<SignInPage> {
                                 onPressed: () => Navigator.pushReplacementNamed(
                                     context, '/signup'),
                                 child: Text(
-                                  'Don\'t have an account? Sign up',
-                                  style: headingMedium.copyWith(
-                                    color: warnOrange,
-                                    fontWeight: FontWeight.bold,
+                                  'Don\'t you have an account?\nSign up',
+                                  textAlign: TextAlign.center,
+                                  style: headingSmall.copyWith(
+                                    color: primary,
                                     decoration: TextDecoration.underline,
                                     decorationColor: warnOrange,
                                   ),
