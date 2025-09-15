@@ -337,6 +337,27 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               SizedBox(height: 20),
+              GestureDetector(
+                onTap: () => Navigator.pushNamed(context, '/examCalendar'),
+                child: Card(
+                  color: Colors.green[50],
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text("📅 Upcoming Exams",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16)),
+                        Icon(Icons.arrow_forward_ios,
+                            size: 16, color: Colors.grey[600]),
+                      ],
+                    ),
+                  ),
+                ),
+              )
             ],
           ),
         ),

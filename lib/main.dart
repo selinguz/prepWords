@@ -4,15 +4,19 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:prep_words/consts.dart';
 import 'package:prep_words/pages/categories_content.dart';
+import 'package:prep_words/pages/exam_calendar_page.dart';
 import 'package:prep_words/pages/home_page.dart';
 import 'package:prep_words/pages/levels_page.dart';
 import 'package:prep_words/pages/sign_in_page.dart';
 import 'package:prep_words/pages/sign_up_page.dart';
 import 'package:prep_words/pages/words_page.dart';
+import 'package:intl/date_symbol_data_local.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+    await initializeDateFormatting('tr_TR', null);
   runApp(MyApp());
 }
 
@@ -52,6 +56,8 @@ class MyApp extends StatelessWidget {
                 return CategoriesContent();
               case '/home':
                 return HomePage();
+              case '/examCalendar':
+                return ExamCalendarPage();
               default:
                 return SplashScreen();
             }

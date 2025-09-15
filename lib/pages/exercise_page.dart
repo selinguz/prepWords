@@ -123,6 +123,13 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
       ),
       body: Stack(
         children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/greenBackground.png',
+              opacity: const AlwaysStoppedAnimation<double>(0.3),
+              fit: BoxFit.cover,
+            ),
+          ),
           PageView.builder(
             controller: _controller,
             itemCount: totalPagesWithFinal,
