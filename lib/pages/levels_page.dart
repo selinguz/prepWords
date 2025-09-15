@@ -6,7 +6,9 @@ import 'package:prep_words/consts.dart';
 import 'package:prep_words/models/word.dart';
 import 'package:prep_words/pages/exercise_page.dart';
 import 'package:prep_words/pages/words_page.dart';
+import 'package:prep_words/provider/word_status_provider.dart';
 import 'package:prep_words/services/firebase_service.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum LevelItemType { unit, practice }
@@ -174,108 +176,112 @@ class _LevelsPageState extends State<LevelsPage> {
   }
 
   Widget _buildUnitCard(int globalUnit, bool isUnlocked, int index) {
-    return InkWell(
-      onTap: isUnlocked
-          ? () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => WordsPage(
-                    unit: globalUnit,
-                    onComplete: () => _unlockNextUnit(index),
-                  ),
-                ),
-              );
-            }
-          : null,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        child: Card(
-          elevation: 3,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          child: Container(
-            padding: EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: isUnlocked ? primary : Colors.grey,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Icon(isUnlocked ? Icons.check : Icons.lock,
-                        color: textWhiteColor),
-                  ),
-                ),
-                SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Unit $globalUnit',
-                        style: headingMedium.copyWith(
-                          color: isUnlocked
-                              ? textGreyColor.withAlpha(179)
-                              : textGreyColor.withAlpha(100),
-                          fontWeight: FontWeight.w600,
-                        ),
+    return Consumer<WordStatusProvider>(
+      builder: (context, provider, child) {
+        int knownCount = provider.knownWordsCount[globalUnit] ?? 0;
+
+        return InkWell(
+          onTap: isUnlocked
+              ? () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => WordsPage(
+                        unit: globalUnit,
+                        onComplete: () {
+                          provider.loadKnownWords(
+                              globalUnit); // geri dönünce güncelle
+                          _unlockNextUnit(index);
+                        },
                       ),
-                      SizedBox(height: 4),
-                      FutureBuilder<int>(
-                        future: _getKnownWordsCount(globalUnit),
-                        builder: (context, snapshot) {
-                          int knownCount = snapshot.data ?? 0;
-                          return Text(
+                    ),
+                  );
+                }
+              : null,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            child: Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              child: Container(
+                padding: EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: isUnlocked ? primary : Colors.grey,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Icon(isUnlocked ? Icons.check : Icons.lock,
+                            color: textWhiteColor),
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Unit $globalUnit',
+                            style: headingMedium.copyWith(
+                              color: isUnlocked
+                                  ? textGreyColor.withAlpha(179)
+                                  : textGreyColor.withAlpha(100),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
                             '20 Words / $knownCount Known',
                             style: bodySmall.copyWith(
                               color: isUnlocked
                                   ? textGreyColor.withAlpha(135)
                                   : textGreyColor.withAlpha(80),
                             ),
-                          );
-                        },
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                Row(
-                  children: [
-                    if (isUnlocked)
-                      GestureDetector(
-                        onTap: () => _showUnitPreview(globalUnit),
-                        child: Container(
+                    ),
+                    Row(
+                      children: [
+                        if (isUnlocked)
+                          GestureDetector(
+                            onTap: () => _showUnitPreview(globalUnit),
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: adjsFront.withValues(alpha: 0.6),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(Icons.visibility,
+                                  color: textWhiteColor, size: 20),
+                            ),
+                          ),
+                        SizedBox(width: 8),
+                        Container(
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: adjsFront.withValues(alpha: 0.6),
+                            color: isUnlocked ? primary : Colors.grey,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Icon(Icons.visibility,
-                              color: textWhiteColor, size: 20),
+                          child: Icon(Icons.arrow_forward_ios,
+                              color: textWhiteColor, size: 18),
                         ),
-                      ),
-                    SizedBox(width: 8),
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: isUnlocked ? primary : Colors.grey,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(Icons.arrow_forward_ios,
-                          color: textWhiteColor, size: 18),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

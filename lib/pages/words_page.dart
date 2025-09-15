@@ -4,7 +4,9 @@ import 'package:prep_words/components/custom_appbar.dart';
 import 'package:prep_words/components/custom_card.dart';
 import 'package:prep_words/consts.dart';
 import 'package:prep_words/models/word.dart';
+import 'package:prep_words/provider/word_status_provider.dart';
 import 'package:prep_words/services/firebase_service.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class WordsPage extends StatefulWidget {
@@ -112,6 +114,12 @@ class _WordsPageState extends State<WordsPage> {
       words[currentPage].status = status;
     });
     _saveWordStatus(words[currentPage].englishWord, status);
+
+    if (status == WordStatus.known) {
+      // Provider'a bildir
+      final provider = Provider.of<WordStatusProvider>(context, listen: false);
+      provider.incrementKnownWord(widget.unit);
+    }
 
     if (currentPage < words.length - 1) {
       _nextPage();

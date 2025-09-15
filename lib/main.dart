@@ -11,13 +11,21 @@ import 'package:prep_words/pages/sign_in_page.dart';
 import 'package:prep_words/pages/sign_up_page.dart';
 import 'package:prep_words/pages/words_page.dart';
 import 'package:intl/date_symbol_data_local.dart';
-
+import 'package:prep_words/provider/word_status_provider.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-    await initializeDateFormatting('tr_TR', null);
-  runApp(MyApp());
+  await initializeDateFormatting('tr_TR', null);
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => WordStatusProvider()),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
