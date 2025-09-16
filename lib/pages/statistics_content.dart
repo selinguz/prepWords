@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:prep_words/components/custom_appbar.dart';
 import 'package:prep_words/consts.dart';
 import 'package:prep_words/data/practice_stats.dart';
 import 'package:prep_words/models/word.dart';
@@ -48,7 +49,7 @@ class _StatisticsContentState extends State<StatisticsContent> {
   }
 
   Future<void> _loadPracticeStats() async {
-    final stats = await PracticeStats.getAllStats(10); // örn. 10 practice
+    final stats = await PracticeStats.getAllStats(24);
     setState(() {
       practiceStats = stats;
     });
@@ -395,17 +396,9 @@ class _StatisticsContentState extends State<StatisticsContent> {
       return Center(child: CircularProgressIndicator());
     }
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: kToolbarHeight * 1.2,
-        backgroundColor: yellowGreen,
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: IconThemeData(color: textGreyColor),
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
-        title: Text(
-          'Statistics',
-          style: headingLarge,
-        ),
+      appBar: CustomAppBar(
+        title: "Statistics",
+        onBackPressed: () => Navigator.pushReplacementNamed(context, '/home'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
