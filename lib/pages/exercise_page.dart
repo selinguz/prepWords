@@ -291,7 +291,7 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             content: Text(
-                                "Testte cevaplanmamış soru/sorular var.",
+                                "There are unanswered questions on the test. Please answer all questions to finish.",
                                 textAlign: TextAlign.center,
                                 style: bodyLarge),
                             duration: const Duration(seconds: 2),
@@ -299,8 +299,6 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
                         );
                         return;
                       }
-
-                      // Tüm sorular tamamlandıysa final skor ekranına geç
                       int totalCorrect = mcqCorrect + matchingCorrect;
                       double successRate = (totalCorrect / 40) * 100;
 

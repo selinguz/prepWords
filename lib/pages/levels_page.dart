@@ -58,6 +58,10 @@ class _LevelsPageState extends State<LevelsPage> {
     super.initState();
     _loadUnlockedUnits();
     _buildLevelItems();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Provider.of<WordStatusProvider>(context, listen: false)
+        .loadAllKnownWords(widget.startUnit, widget.unitCount);
+  });
   }
 
   void _buildLevelItems() {
@@ -136,38 +140,74 @@ class _LevelsPageState extends State<LevelsPage> {
     List<Widget> wordWidgets = words.map((word) {
       String status =
           prefs.getString("word_status_${word.englishWord}") ?? "unknown";
-      Icon icon;
+
+      Color bgColor;
+      IconData iconData;
       switch (status) {
         case "WordStatus.known":
-          icon = Icon(Icons.check, color: Colors.green);
+          bgColor = Colors.green;
+          iconData = Icons.check;
           break;
         case "WordStatus.unknown":
-          icon = Icon(Icons.close, color: Colors.red);
+          bgColor = Colors.red;
+          iconData = Icons.close;
           break;
         case "WordStatus.unsure":
-          icon = Icon(Icons.remove, color: Colors.amber);
+          bgColor = Colors.amber;
+          iconData = Icons.remove;
           break;
         default:
-          icon = Icon(Icons.help_outline, color: Colors.grey);
+          bgColor = Colors.grey;
+          iconData = Icons.help_outline;
       }
-      return ListTile(
-          title: Text(word.englishWord, style: bodyMedium), trailing: icon);
+
+      return Card(
+        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        elevation: 2,
+        child: ListTile(
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          title: Text(word.englishWord, style: bodyMedium),
+          trailing: CircleAvatar(
+            radius: 16,
+            backgroundColor: bgColor.withValues(alpha: 0.15),
+            child: Icon(iconData, color: bgColor, size: 20),
+          ),
+        ),
+      );
     }).toList();
 
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       isScrollControlled: true,
       builder: (context) {
         return Container(
-          height: MediaQuery.of(context).size.height * 0.6,
-          padding: EdgeInsets.all(16),
+          height: MediaQuery.of(context).size.height * 0.65,
+          padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              Text('Unit $globalUnit Words', style: headingMedium),
-              SizedBox(height: 16),
-              Expanded(child: ListView(children: wordWidgets)),
+              Container(
+                width: 40,
+                height: 5,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[400],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              Text('Unit $globalUnit Words',
+                  style: headingMedium.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              Expanded(
+                child: ListView(
+                  physics: const BouncingScrollPhysics(),
+                  children: wordWidgets,
+                ),
+              ),
             ],
           ),
         );
@@ -328,17 +368,14 @@ class _LevelsPageState extends State<LevelsPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        bothUnitsUnlocked ? Icons.school : Icons.lock,
-                        color:
-                            bothUnitsUnlocked ? Colors.blueAccent : Colors.grey,
+                        bothUnitsUnlocked ? Icons.edit_note : Icons.lock,
+                        color: bothUnitsUnlocked ? green : Colors.grey,
                       ),
                       SizedBox(width: 12),
                       Text(
                         'Practice $practiceNumber',
                         style: headingMedium.copyWith(
-                          color: bothUnitsUnlocked
-                              ? Colors.blueAccent
-                              : Colors.grey,
+                          color: bothUnitsUnlocked ? green : Colors.grey,
                         ),
                       ),
                     ],

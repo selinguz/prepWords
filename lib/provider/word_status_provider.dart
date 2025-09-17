@@ -5,26 +5,31 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class WordStatusProvider extends ChangeNotifier {
   final FirebaseService _firebaseService = FirebaseService();
-
-  // unit -> known count
-  final Map<int, int> _knownWordsCount = {};
-
-  Map<int, int> get knownWordsCount => _knownWordsCount;
+  Map<int, int> knownWordsCount = {};
 
   Future<void> loadKnownWords(int unit) async {
     final prefs = await SharedPreferences.getInstance();
     List<WordModel> words = await _firebaseService.fetchWordsByUnit(unit);
-    int count = words.where((w) {
-      final status = prefs.getString("word_status_${w.englishWord}") ?? "";
-      return status == WordStatus.known.toString();
-    }).length;
 
-    _knownWordsCount[unit] = count;
+    int count = 0;
+    for (var word in words) {
+      final status = prefs.getString("word_status_${word.englishWord}") ?? "";
+      if (status == WordStatus.known.toString()) count++;
+    }
+
+    knownWordsCount[unit] = count;
     notifyListeners();
   }
 
+  Future<void> loadAllKnownWords(int startUnit, int unitCount) async {
+    for (int i = 0; i < unitCount; i++) {
+      int globalUnit = startUnit + i;
+      await loadKnownWords(globalUnit);
+    }
+  }
+
   Future<void> incrementKnownWord(int unit) async {
-    _knownWordsCount[unit] = (_knownWordsCount[unit] ?? 0) + 1;
+    knownWordsCount[unit] = (knownWordsCount[unit] ?? 0) + 1;
     notifyListeners();
   }
 }
