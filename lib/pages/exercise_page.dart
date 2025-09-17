@@ -33,7 +33,7 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
   // Matching cevabı için state kontrolü
   Map<int, Map<String, String>> previousMatchingState = {};
 
-  int score = 0;
+  double score = 0.0;
   Map<int, String?> selectedOptions = {};
   bool showFinalScore = false;
 
@@ -61,48 +61,37 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
     _controller = PageController();
   }
 
-  void _handleMCQAnswer(bool correct) {
+  void _handleMCQAnswer(bool isCorrect) {
     setState(() {
-      if (correct) {
-        score += 1;
-        earnedXp += 5;
+      if (isCorrect) {
         mcqCorrect++;
+        score += (2.5);
       } else {
-        score -= 1;
-        earnedXp -= 2;
         mcqWrong++;
+        score -= 1;
       }
+
+      earnedXp = score.toInt() * 3; //
       debugPrint(
           "MCQ -> Correct: $mcqCorrect, Wrong: $mcqWrong, Score: $score, XP: $earnedXp");
     });
   }
 
-  void _handleMatchingAnswer(int matchingIndex, Map<String, String> matched) {
-    // Önceki eşleşmeleri al
-    Map<String, String> prevMatched =
-        previousMatchingState[matchingIndex] ?? {};
-
-    int deltaCorrect = 0;
-    int deltaWrong = 0;
-
-    matched.forEach((key, value) {
-      String prev = prevMatched[key] ?? 'none';
-      if (prev != value) {
-        if (value == 'correct') deltaCorrect++;
-        if (value == 'wrong') deltaWrong++;
-      }
-    });
-
+  void _handleMatchingAnswer(bool isCorrect) {
     setState(() {
-      score += deltaCorrect - deltaWrong; // puan
-      earnedXp += deltaCorrect * 3 + deltaWrong * -1; // XP
-    });
+      if (isCorrect) {
+        matchingCorrect++;
+        score += (2.5);
+      } else {
+        matchingWrong++;
+        score -= 1;
+      }
 
-    // State’i güncelle
-    previousMatchingState[matchingIndex] = Map.from(matched);
+      earnedXp = score.toInt() * 3; // XP
+    });
 
     debugPrint(
-        'Matching -> Correct: ${matched.values.where((v) => v == 'correct').length}, Wrong: ${matched.values.where((v) => v == 'wrong').length}, Score: $score, XP: $earnedXp');
+        'Matching -> Correct: $matchingCorrect, Wrong: $matchingWrong, Score: $score, XP: $earnedXp');
   }
 
   @override
@@ -177,8 +166,8 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
                 child: MatchingQuestionWidget(
                   words: group,
                   initialMatched: matchingGroupState[matchingIndex] ?? {},
-                  onCompleted: (correctMatches, matched) {
-                    _handleMatchingAnswer(matchingIndex, matched);
+                  onCompleted: (isCorrect, matched) {
+                    _handleMatchingAnswer(isCorrect);
                     setState(() {
                       matchingGroupState[matchingIndex] = matched;
                     });
@@ -226,8 +215,15 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
 
                 return ElevatedButton(
                   onPressed: () async {
+                    int totalCorrect = mcqCorrect + matchingCorrect;
+                    double successRate = (totalCorrect / 40) * 100;
+
+                    debugPrint(
+                        "✅ Success Rate: ${successRate.toStringAsFixed(2)}%");
+
                     await PracticeStats.savePracticeResult(
-                        widget.practiceNumber, earnedXp);
+                        widget.practiceNumber, earnedXp, successRate);
+
                     setState(() => showFinalScore = true);
                     _controller.animateToPage(
                       totalPages,

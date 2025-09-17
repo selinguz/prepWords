@@ -49,9 +49,13 @@ class _StatisticsContentState extends State<StatisticsContent> {
   }
 
   Future<void> _loadPracticeStats() async {
-    final stats = await PracticeStats.getAllStats(24);
+    final stats = await PracticeStats.getAllSuccessRates(24);
+
     setState(() {
-      practiceStats = stats;
+      // sadece deneme yapılmış (liste boş olmayan) practicle’lar kalsın
+      practiceStats = stats
+          .map((k, v) => MapEntry(k, v.map((d) => d.toInt()).toList()))
+        ..removeWhere((key, value) => value.isEmpty);
     });
   }
 
@@ -141,16 +145,12 @@ class _StatisticsContentState extends State<StatisticsContent> {
     });
   }
 
-  Widget _buildPracticeStatCard(int practiceId, List<int> correctList) {
-    final attemptCount = correctList.length;
-
-    // Her denemenin yüzdesini hesapla
-    final List<double> percentages =
-        correctList.map((c) => (c / 40.0 * 100.0)).toList();
+  Widget _buildPracticeStatCard(int practiceId, List<int> successList) {
+    final attemptCount = successList.length;
 
     // Kümülatif başarı = ortalama
-    final successRate = percentages.isNotEmpty
-        ? percentages.reduce((a, b) => a + b) / percentages.length
+    final avgSuccessRate = successList.isNotEmpty
+        ? successList.reduce((a, b) => a + b) / successList.length
         : 0.0;
 
     return GestureDetector(
@@ -166,13 +166,14 @@ class _StatisticsContentState extends State<StatisticsContent> {
                 children: [
                   Text('Practice $practiceId Details', style: headingLarge),
                   const SizedBox(height: 12),
-                  Text("Success Rate: ${successRate.toStringAsFixed(1)}%",
+                  Text("Average Success: ${avgSuccessRate.toStringAsFixed(1)}%",
                       style: bodyMedium),
                   const SizedBox(height: 12),
-                  ...percentages.asMap().entries.map((e) {
+                  ...successList.asMap().entries.map((e) {
                     return Text(
-                        'Attempt ${e.key + 1}: ${e.value.toStringAsFixed(1)}%',
-                        style: bodyMedium);
+                      'Attempt ${e.key + 1}: ${e.value}%',
+                      style: bodyMedium,
+                    );
                   }),
                 ],
               ),
@@ -220,9 +221,9 @@ class _StatisticsContentState extends State<StatisticsContent> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text("${successRate.toStringAsFixed(1)}% success",
+                Text("${avgSuccessRate.toStringAsFixed(1)}% success",
                     style: bodyMedium.copyWith(
-                        color: successRate >= 50
+                        color: avgSuccessRate >= 50
                             ? Colors.green[700]
                             : Colors.red[700],
                         fontSize: 14,

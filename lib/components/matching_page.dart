@@ -5,7 +5,7 @@ import 'package:prep_words/consts.dart';
 class MatchingQuestionWidget extends StatefulWidget {
   final List<WordModel> words;
   final Map<String, String>? initialMatched; // ✅ Önceki eşleşmeleri al
-  final void Function(int correctCount, Map<String, String> updatedMatched)
+  final void Function(bool isCorrect, Map<String, String> updatedMatched)
       onCompleted; // ✅ Güncel eşleşmeleri gönder
 
   const MatchingQuestionWidget({
@@ -74,7 +74,8 @@ class _MatchingQuestionWidgetState extends State<MatchingQuestionWidget> {
           pairColors[english] = soft;
           pairColors[turkish] = soft;
         });
-        widget.onCompleted(1, Map.from(matched)); // ✅ doğru ve güncel eşleşme
+        widget.onCompleted(
+            isCorrect, Map.from(matched)); // ✅ doğru ve güncel eşleşme
       });
     } else {
       setState(() {
@@ -88,7 +89,8 @@ class _MatchingQuestionWidgetState extends State<MatchingQuestionWidget> {
           pairColors.remove(english);
           pairColors.remove(turkish);
         });
-        widget.onCompleted(0, Map.from(matched)); // ✅ yanlış, eşleşme güncel
+        widget.onCompleted(
+            false, Map.from(matched)); // ✅ yanlış, eşleşme güncel
       });
     }
   }
