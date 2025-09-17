@@ -22,6 +22,7 @@ class PracticeExercisePage extends StatefulWidget {
 }
 
 class _PracticeExercisePageState extends State<PracticeExercisePage> {
+  late List<Map<String, dynamic>> pages;
   int earnedXp = 0;
   int matchingCorrect = 0;
   Map<int, Map<String, String>> matchingGroupState = {};
@@ -50,13 +51,25 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
     super.initState();
 
     widget.allWords.shuffle();
+
+    // 10 MCQ kelimesi seç
     mcqWords = widget.allWords.take(10).toList();
+
+    // Matching için kalan kelimeleri al
     List<WordModel> remaining = widget.allWords.skip(10).toList();
 
+    // 30 kelimelik 6 grup (5'erli)
     matchingGroups = [];
-    for (int i = 0; i < remaining.length; i += 5) {
+    for (int i = 0; i < 30; i += 5) {
       matchingGroups.add(remaining.skip(i).take(5).toList());
     }
+
+    // 🔀 Tüm sayfaları bir listede topla (MCQ + Matching) ve karıştır
+    pages = [
+      ...mcqWords.map((w) => {'type': 'mcq', 'word': w}),
+      ...List.generate(matchingGroups.length,
+          (i) => {'type': 'matching', 'group': matchingGroups[i], 'index': i}),
+    ]..shuffle();
 
     _controller = PageController();
   }
@@ -92,6 +105,18 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
 
     debugPrint(
         'Matching -> Correct: $matchingCorrect, Wrong: $matchingWrong, Score: $score, XP: $earnedXp');
+  }
+
+  bool get allAnswered {
+    // MCQ’lar: null olmayanlar cevaplanmış
+    bool mcqDone =
+        selectedOptions.values.whereType<String>().length == mcqWords.length;
+
+    // Matching: her grubun matched map’i boş değilse cevaplanmış sayılır
+    bool matchingDone = matchingGroupState.length == matchingGroups.length &&
+        matchingGroupState.values.every((m) => m.isNotEmpty);
+
+    return mcqDone && matchingDone;
   }
 
   @override
@@ -137,13 +162,25 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
                           style: headingLarge.copyWith(fontSize: 32)),
                       const SizedBox(height: 24),
                       Text("$earnedXp", style: headingLarge),
+                      const SizedBox(height: 32),
+
+                      // 🔽 Finish butonu sadece tüm sorular cevaplandığında görünür
+                      if (allAnswered)
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text("Finish"),
+                        ),
                     ],
                   ),
                 );
               }
 
-              if (index < mcqWords.length) {
-                WordModel word = mcqWords[index];
+              final page = pages[index];
+
+              if (page['type'] == 'mcq') {
+                WordModel word = page['word'];
                 return SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: MultipleChoiceQuestionWidget(
@@ -153,27 +190,52 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
                     onAnswered: (correct, selected) {
                       selectedOptions[index] = selected;
                       _handleMCQAnswer(correct);
+
+                      if (correct) {
+                        if (_controller.hasClients && index < totalPages - 1) {
+                          Future.delayed(const Duration(milliseconds: 500), () {
+                            _controller.nextPage(
+                              duration: const Duration(milliseconds: 400),
+                              curve: Curves.easeInOut,
+                            );
+                          });
+                        }
+                      }
+                    },
+                  ),
+                );
+              } else {
+                int matchingIndex = page['index'];
+                List<WordModel> group = page['group'];
+
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: MatchingQuestionWidget(
+                    words: group,
+                    initialMatched: matchingGroupState[matchingIndex] ?? {},
+                    onCompleted: (isCorrect, matched) {
+                      _handleMatchingAnswer(isCorrect);
+                      setState(() {
+                        matchingGroupState[matchingIndex] = matched;
+                      });
+
+                      // Tüm eşleşmeler tamamlandıysa
+                      int requiredMatches =
+                          matchingGroups[matchingIndex].length;
+                      if (matched.length == requiredMatches) {
+                        if (_controller.hasClients && index < totalPages - 1) {
+                          Future.delayed(const Duration(milliseconds: 500), () {
+                            _controller.nextPage(
+                              duration: const Duration(milliseconds: 400),
+                              curve: Curves.easeInOut,
+                            );
+                          });
+                        }
+                      }
                     },
                   ),
                 );
               }
-
-              int matchingIndex = index - mcqWords.length;
-              List<WordModel> group = matchingGroups[matchingIndex];
-
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: MatchingQuestionWidget(
-                  words: group,
-                  initialMatched: matchingGroupState[matchingIndex] ?? {},
-                  onCompleted: (isCorrect, matched) {
-                    _handleMatchingAnswer(isCorrect);
-                    setState(() {
-                      matchingGroupState[matchingIndex] = matched;
-                    });
-                  },
-                ),
-              );
             },
             onPageChanged: (index) {
               setState(() {});
@@ -196,52 +258,77 @@ class _PracticeExercisePageState extends State<PracticeExercisePage> {
               bottom: 16,
               left: 16,
               right: 16,
-              child: Builder(builder: (context) {
-                int currentIndex =
-                    _controller.hasClients ? _controller.page?.round() ?? 0 : 0;
-                bool isLastQuestionPage = currentIndex == totalPages - 1;
+              child: Builder(
+                builder: (context) {
+                  int currentIndex = _controller.hasClients
+                      ? _controller.page?.round() ?? 0
+                      : 0;
+                  bool isLastQuestionPage = currentIndex == totalPages - 1;
 
-                if (!isLastQuestionPage) return const SizedBox.shrink();
+                  // 🔹 Sadece son sayfada göster
+                  if (!isLastQuestionPage) return const SizedBox.shrink();
 
-                // ✅ Son matching sayfası için kontrol
-                int lastMatchingIndex = matchingGroups.length - 1;
-                Map<String, String> lastMatched =
-                    matchingGroupState[lastMatchingIndex] ?? {};
-                int requiredMatches = matchingGroups[lastMatchingIndex].length;
+                  return ElevatedButton(
+                    onPressed: () async {
+                      // MCQ ve Matching kontrolü
+                      bool mcqDone =
+                          selectedOptions.values.whereType<String>().length ==
+                              mcqWords.length;
 
-                bool allMatched = lastMatched.length == requiredMatches;
+                      bool matchingDone =
+                          matchingGroups.asMap().entries.every((e) {
+                        final requiredMatches = e.value.length;
+                        final matched = matchingGroupState[e.key] ?? {};
+                        return matched.length == requiredMatches;
+                      });
 
-                if (!allMatched) return const SizedBox.shrink();
+                      if (!mcqDone || !matchingDone) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: yellowGreen,
+                            behavior: SnackBarBehavior.fixed,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            content: Text(
+                                "Testte cevaplanmamış soru/sorular var.",
+                                textAlign: TextAlign.center,
+                                style: bodyLarge),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                        return;
+                      }
 
-                return ElevatedButton(
-                  onPressed: () async {
-                    int totalCorrect = mcqCorrect + matchingCorrect;
-                    double successRate = (totalCorrect / 40) * 100;
+                      // Tüm sorular tamamlandıysa final skor ekranına geç
+                      int totalCorrect = mcqCorrect + matchingCorrect;
+                      double successRate = (totalCorrect / 40) * 100;
 
-                    debugPrint(
-                        "✅ Success Rate: ${successRate.toStringAsFixed(2)}%");
+                      debugPrint(
+                          "✅ Success Rate: ${successRate.toStringAsFixed(2)}%");
 
-                    await PracticeStats.savePracticeResult(
-                        widget.practiceNumber, earnedXp, successRate);
+                      await PracticeStats.savePracticeResult(
+                          widget.practiceNumber, earnedXp, successRate);
 
-                    setState(() => showFinalScore = true);
-                    _controller.animateToPage(
-                      totalPages,
-                      duration: const Duration(milliseconds: 400),
-                      curve: Curves.easeInOut,
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: secondary,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 14, horizontal: 28),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      setState(() => showFinalScore = true);
+                      _controller.animateToPage(
+                        totalPages,
+                        duration: const Duration(milliseconds: 400),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: secondary,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 14, horizontal: 28),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                  ),
-                  child: const Text("Finish", style: whiteButtonText),
-                );
-              }),
+                    child: const Text("Finish", style: whiteButtonText),
+                  );
+                },
+              ),
             ),
         ],
       ),
